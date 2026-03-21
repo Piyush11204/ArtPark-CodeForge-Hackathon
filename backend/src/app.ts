@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -16,10 +17,27 @@ import courseRoutes from './routes/courseRoutes';
 const app = express();
 
 // Security
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Allow Vite-built assets to load
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(
   cors({
-    origin: [env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, same-origin)
+      if (!origin) return callback(null, true);
+      const allowed = [
+        env.FRONTEND_URL,
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ].filter(Boolean);
+      if (allowed.includes(origin)) return callback(null, true);
+      // In production, also allow same-origin Render deployments
+      if (env.NODE_ENV === 'production') return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -70,7 +88,17 @@ app.use('/api/gap', gapRoutes);
 app.use('/api/pathway', pathwayRoutes);
 app.use('/api/courses', courseRoutes);
 
-// 404
+// Serve React frontend in production
+if (env.NODE_ENV === 'production') {
+  const frontendDist = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendDist));
+  // SPA catch-all: serve index.html for non-API routes
+  app.get(/^(?!\/api).*/, (_req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
+// 404 for unmatched API routes
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
