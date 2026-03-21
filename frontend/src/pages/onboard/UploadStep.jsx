@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import {
   UploadCloud, FileText, X, Plus, Pencil, Trash2,
-  User, Briefcase, GraduationCap, Wrench, Award, FolderOpen, ArrowRight, RefreshCw,
+  User, Briefcase, GraduationCap, Wrench, Award, FolderOpen, ArrowRight, RefreshCw,CheckCircle2 ,
 } from 'lucide-react';
 import { resumeService } from '../../services/resumeService';
 import { useOnboardStore } from '../../store/onboardStore';
@@ -197,6 +197,13 @@ export default function UploadStep() {
   const [saving, setSaving] = useState(false);
   const [addingExp, setAddingExp] = useState(false);
   const [addingEdu, setAddingEdu] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+
+  // Mode / existing resume picker
+  const [mode, setMode] = useState(null); // null=choice | 'upload' | 'existing'
+  const [existingResumes, setExistingResumes] = useState([]);
+  const [loadingExisting, setLoadingExisting] = useState(false);
+  const [selectedExistingId, setSelectedExistingId] = useState(null);
 
   // ── helpers ─────────────────────────────────────────────────────────────────
   const update = (path, value) => {
@@ -209,6 +216,29 @@ export default function UploadStep() {
       obj[keys[keys.length - 1]] = value;
       return next;
     });
+  };
+
+  // ── existing resume helpers ──────────────────────────────────────────────────
+  const loadExistingResumes = async () => {
+    setLoadingExisting(true);
+    setError('');
+    try {
+      const resumes = await resumeService.getMyResumes();
+      setExistingResumes(resumes);
+    } catch {
+      setError('Failed to load saved resumes.');
+    } finally {
+      setLoadingExisting(false);
+    }
+  };
+
+  const handleSelectExisting = () => {
+    const r = existingResumes.find(x => x._id === selectedExistingId);
+    if (!r?.parsedData) return;
+    setResumeId(r._id);
+    setParsed(r.parsedData);
+    setDisplayName(r.originalFilename || 'Saved Resume');
+    setDirty(false);
   };
 
   // ── dropzone ─────────────────────────────────────────────────────────────────
@@ -240,6 +270,7 @@ export default function UploadStep() {
       // data = { resumeId, normalizedSkills, parsedData }
       setResumeId(data.resumeId);
       setParsed(data.parsedData);
+      setDisplayName(file.name);
       setDirty(false);
     } catch (err) {
       setError(err.response?.data?.message || 'Upload failed. Please try again.');
@@ -267,11 +298,132 @@ export default function UploadStep() {
   };
 
   // ════════════════════════════════════════════════════════════════════════════
+  // PHASE 0 — Choice
+  // ════════════════════════════════════════════════════════════════════════════
+  if (!parsed && mode === null) {
+    return (
+      <div className="max-w-lg mx-auto">
+        <h2 className="text-2xl font-bold text-white mb-2">Set Up Your Profile</h2>
+        <p className="text-slate-400 mb-8">How would you like to provide your resume?</p>
+        {error && <Alert type="error" message={error} className="mb-4" />}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <button
+            onClick={() => setMode('upload')}
+            className="group flex flex-col items-center gap-4 p-8 rounded-xl border-2 border-slate-700 hover:border-indigo-500 bg-slate-800/60 hover:bg-slate-800 transition-all text-center"
+          >
+            <div className="w-14 h-14 rounded-full bg-indigo-900/60 flex items-center justify-center group-hover:bg-indigo-900 transition-colors">
+              <UploadCloud size={28} className="text-indigo-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-white text-sm">Upload New Resume</p>
+              <p className="text-xs text-slate-400 mt-1">Parse a fresh PDF, DOCX, or TXT with AI</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => { setMode('existing'); loadExistingResumes(); }}
+            className="group flex flex-col items-center gap-4 p-8 rounded-xl border-2 border-slate-700 hover:border-emerald-500 bg-slate-800/60 hover:bg-slate-800 transition-all text-center"
+          >
+            <div className="w-14 h-14 rounded-full bg-emerald-900/60 flex items-center justify-center group-hover:bg-emerald-900 transition-colors">
+              <FolderOpen size={28} className="text-emerald-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-white text-sm">Use Saved Resume</p>
+              <p className="text-xs text-slate-400 mt-1">Pick from a resume you've uploaded before</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // PHASE 0b — Existing Resume Picker
+  // ════════════════════════════════════════════════════════════════════════════
+  if (!parsed && mode === 'existing') {
+    return (
+      <div className="max-w-lg mx-auto">
+        <button
+          onClick={() => { setMode(null); setError(''); setSelectedExistingId(null); }}
+          className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-5 transition-colors"
+        >
+          ← Back
+        </button>
+        <h2 className="text-2xl font-bold text-white mb-2">Your Saved Resumes</h2>
+        <p className="text-slate-400 mb-6">Select a resume to review and use for this session.</p>
+        {error && <Alert type="error" message={error} className="mb-4" />}
+
+        {loadingExisting ? (
+          <div className="flex justify-center py-12"><Spinner /></div>
+        ) : existingResumes.length === 0 ? (
+          <div className="text-center py-12">
+            <FolderOpen size={40} className="mx-auto mb-3 text-slate-600" />
+            <p className="text-slate-400">No saved resumes found.</p>
+            <button
+              onClick={() => setMode('upload')}
+              className="mt-4 text-sm text-indigo-400 hover:text-indigo-300 underline"
+            >
+              Upload a new one instead
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3 mb-6">
+            {existingResumes.map((r) => (
+              <button
+                key={r._id}
+                onClick={() => setSelectedExistingId(r._id)}
+                className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                  selectedExistingId === r._id
+                    ? 'border-emerald-500 bg-emerald-900/20'
+                    : 'border-slate-700 hover:border-slate-500 bg-slate-800/60'
+                }`}
+              >
+                <div className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center ${
+                  selectedExistingId === r._id ? 'bg-emerald-700' : 'bg-slate-700'
+                }`}>
+                  {selectedExistingId === r._id
+                    ? <CheckCircle2 size={18} className="text-white" />
+                    : <FileText size={18} className="text-slate-400" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-medium truncate">
+                    {r.originalFilename || 'Resume'}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Uploaded {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '—'}
+                    {r.normalizedSkills?.length ? ` · ${r.normalizedSkills.length} skills detected` : ''}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {existingResumes.length > 0 && (
+          <Button
+            onClick={handleSelectExisting}
+            disabled={!selectedExistingId}
+            className="w-full"
+          >
+            Review &amp; Use This Resume <ArrowRight size={16} />
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
   // PHASE 1 — Upload
   // ════════════════════════════════════════════════════════════════════════════
   if (!parsed) {
     return (
       <div className="max-w-xl mx-auto">
+        <button
+          onClick={() => { setMode(null); setFile(null); setError(''); }}
+          className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-5 transition-colors"
+        >
+          ← Back
+        </button>
         <h2 className="text-2xl font-bold text-white mb-2">Upload Your Resume</h2>
         <p className="text-slate-400 mb-6">Our AI will extract your skills and experience automatically.</p>
 
@@ -331,17 +483,17 @@ export default function UploadStep() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <FileText size={16} className="text-emerald-400" />
-            <span className="text-emerald-400 text-sm font-medium">Parsed: {file?.name}</span>
+            <span className="text-emerald-400 text-sm font-medium">Parsed: {displayName || file?.name}</span>
             {dirty && <span className="text-xs text-amber-400 bg-amber-900/30 border border-amber-700/50 px-2 py-0.5 rounded-full">Unsaved edits</span>}
           </div>
           <h2 className="text-2xl font-bold text-white">Review & Edit Parsed Data</h2>
           <p className="text-slate-400 text-sm mt-0.5">Correct anything that looks wrong before continuing.</p>
         </div>
         <button
-          onClick={() => { setParsed(null); setFile(null); setDirty(false); }}
+          onClick={() => { setParsed(null); setFile(null); setDirty(false); setMode(null); setSelectedExistingId(null); }}
           className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-colors"
         >
-          <RefreshCw size={14} /> Re-upload
+          <RefreshCw size={14} /> Change Resume
         </button>
       </div>
 
@@ -468,10 +620,10 @@ export default function UploadStep() {
       {/* Bottom CTA */}
       <div className="flex gap-3 pt-2 pb-4">
         <button
-          onClick={() => { setParsed(null); setFile(null); setDirty(false); }}
+          onClick={() => { setParsed(null); setFile(null); setDirty(false); setMode(null); setSelectedExistingId(null); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
         >
-          <RefreshCw size={14} /> Re-upload
+          <RefreshCw size={14} /> Change Resume
         </button>
         <Button onClick={handleConfirm} loading={saving} className="flex-1">
           {dirty ? 'Save & Continue →' : 'Looks Good — Continue'}
