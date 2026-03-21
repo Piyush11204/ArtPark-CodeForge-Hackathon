@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { normalizeSkills } from '../config/skillAliases';
+import { normalizeSkills, normalizeSkill, SKILL_EXPANSIONS, SYNONYM_LOOKUP } from '../config/skillAliases';
 import { IGapDetail } from '../models/GapReport';
 import { IParsedData } from '../models/Resume';
 import { IJob } from '../models/Job';
@@ -32,7 +32,6 @@ function localExtractSkillsFromText(text: string): string[] {
   if (!text) return [];
   const lower = text.toLowerCase();
   return JD_SKILL_KEYWORDS.filter((kw) => {
-    // Word-boundary check: the keyword should not be a substring of another word
     const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`(?<![a-z])${escaped}(?![a-z])`, 'i').test(lower);
   });
@@ -59,6 +58,65 @@ async function extractSkillsFromJD(description: string): Promise<string[]> {
 }
 
 /**
+ * Expands composite candidate skills to their components.
+ * e.g. "mern stack" → also adds "mongodb", "express", "react", "nodejs"
+ */
+function expandSkills(skills: string[]): string[] {
+  const expanded = new Set(skills);
+  for (const skill of skills) {
+    const components = SKILL_EXPANSIONS[skill];
+    if (components) components.forEach(c => expanded.add(c));
+  }
+  return [...expanded];
+}
+
+/**
+ * Exact match: is `required` in the candidate set, or any synonym of it?
+ */
+function exactOrSynonymMatch(required: string, candidateSet: Set<string>): boolean {
+  if (candidateSet.has(required)) return true;
+  const synonyms = SYNONYM_LOOKUP.get(required);
+  if (synonyms) {
+    for (const syn of synonyms) {
+      if (candidateSet.has(syn)) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Fuzzy / word-overlap match:
+ *  - One skill contains the other as a full substring
+ *  - Significant word overlap (≥1 content word in common)
+ */
+function fuzzyMatch(required: string, candidateSkills: string[]): boolean {
+  const STOP = new Set(['and', 'or', 'the', 'a', 'an', 'of', 'in', 'for', 'with', 'to', 'at']);
+  const reqWords = required.split(/\s+/).filter(w => w.length > 2 && !STOP.has(w));
+  if (reqWords.length === 0) return false;
+
+  for (const cand of candidateSkills) {
+    // substring containment
+    if (cand.includes(required) || required.includes(cand)) return true;
+    // word overlap
+    const candWords = cand.split(/\s+/).filter(w => w.length > 2 && !STOP.has(w));
+    const overlap = reqWords.filter(w => candWords.includes(w));
+    if (overlap.length > 0) return true;
+    // synonym set of candidate also checked
+    const candSynonyms = SYNONYM_LOOKUP.get(cand);
+    if (candSynonyms) {
+      // if required shares any synonym group member with candidate's group
+      const reqSynonyms = SYNONYM_LOOKUP.get(required);
+      if (reqSynonyms) {
+        for (const rs of reqSynonyms) {
+          if (candSynonyms.has(rs)) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Extracts a flat list of all skills from parsed resume data.
  */
 export function extractSkillsFromParsedData(data: IParsedData): string[] {
@@ -70,35 +128,33 @@ export function extractSkillsFromParsedData(data: IParsedData): string[] {
     ...(skills?.languages ?? []),
     ...(skills?.tools_and_technologies ?? []),
   ];
-
-  // Also pull skills mentioned in work experience and projects
-  data.work_experience?.forEach((exp) => {
-    if (exp.description) {
-      // Minimal extraction: we trust parser for explicit skills
-    }
-  });
-
   return normalizeSkills(raw);
 }
 
 /**
  * Computes the skill gap between a candidate's normalized skills and a job.
- * If the job has no requiredSkills, falls back to ML service extraction from description.
+ *
+ * Matching tiers (for each required skill):
+ *   satisfied  — exact match or synonym group match (score: 1.0)
+ *   partial    — fuzzy / word-overlap / related match   (score: 0.5)
+ *   missing    — no match                               (score: 0.0)
+ *
+ * matchScore = round((satisfied + 0.5 * partial) / totalRequired * 100)
+ * gapScore   = 100 - matchScore
  */
 export async function computeGap(
   candidateNormalizedSkills: string[],
   job: IJob
 ): Promise<IGapDetail> {
-  const candidateSet = new Set(candidateNormalizedSkills);
+  // 1. Expand composite skills (MERN → mongodb+express+react+nodejs etc.)
+  const expandedCandidate = expandSkills(candidateNormalizedSkills);
+  const candidateSet = new Set(expandedCandidate);
 
+  // 2. Get required skills with fallbacks
   let requiredSkills = job.requiredSkills ?? [];
-
-  // Fallback 1: extract from job description (ML first, then local keywords)
   if (requiredSkills.length === 0 && job.jobDescription) {
     requiredSkills = await extractSkillsFromJD(job.jobDescription);
   }
-
-  // Fallback 2: extract from the job title itself (e.g. "React Developer")
   if (requiredSkills.length === 0 && job.jobTitle) {
     requiredSkills = localExtractSkillsFromText(job.jobTitle);
   }
@@ -106,24 +162,54 @@ export async function computeGap(
   const normalizedRequired = normalizeSkills(requiredSkills);
   const normalizedPreferred = normalizeSkills(job.preferredSkills ?? []);
 
-  const satisfied = normalizedRequired.filter((s) => candidateSet.has(s));
-  const missing = normalizedRequired.filter((s) => !candidateSet.has(s));
-  const partial = normalizedPreferred.filter((s) => !candidateSet.has(s));
+  // 3. Three-tier matching for each required skill
+  const satisfied: string[] = [];
+  const partial: string[] = [];
+  const missing: string[] = [];
 
+  for (const req of normalizedRequired) {
+    if (exactOrSynonymMatch(req, candidateSet)) {
+      satisfied.push(req);
+    } else if (fuzzyMatch(req, expandedCandidate)) {
+      partial.push(req);
+    } else {
+      missing.push(req);
+    }
+  }
+
+  // 4. Also run preferred skills through the same matching; merge any exact/synonym hits
+  //    into partial (unless already satisfied)
+  const satisfiedSet = new Set(satisfied);
+  for (const pref of normalizedPreferred) {
+    if (!satisfiedSet.has(pref) && exactOrSynonymMatch(pref, candidateSet)) {
+      partial.push(pref); // earns partial credit for preferred match
+    }
+  }
+
+  // 5. Transferable: candidate's original (unexpanded) skills that didn't appear in
+  //    required or preferred — shows breadth beyond the role requirements
+  const allJobSkills = new Set([...normalizedRequired, ...normalizedPreferred]);
+  const transferable = candidateNormalizedSkills.filter(
+    s => !allJobSkills.has(s) && !satisfiedSet.has(s)
+  );
+
+  // 6. Score: satisfied=1.0, partial=0.5, missing=0
   const totalRequired = normalizedRequired.length;
-  const gapScore =
+  const matchScore =
     totalRequired > 0
-      ? Math.round((missing.length / totalRequired) * 100)
-      : 0;
-  const matchScore = 100 - gapScore;
+      ? Math.min(100, Math.round(((satisfied.length + 0.5 * partial.length) / totalRequired) * 100))
+      : 100;
+  const gapScore = 100 - matchScore;
 
   return {
     missing,
     partial,
     satisfied,
+    transferable,
     gapScore,
     matchScore,
     totalRequired,
     totalCandidate: candidateNormalizedSkills.length,
   };
 }
+

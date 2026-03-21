@@ -14,7 +14,10 @@ function JobCard({ job, onSelect, selectable }) {
   // Map frontend keys to the correct backend field names
   const jobTitle = job.jobTitle ?? job.title;
   const company = job.companyName ?? job.company;
-  const location = job.jobLocation ?? job.location;
+  const rawLocation = job.jobLocation ?? job.location;
+  const location = rawLocation && typeof rawLocation === 'object'
+    ? [rawLocation.city, rawLocation.state, rawLocation.country].filter(Boolean).join(', ')
+    : rawLocation;
   const skills = job.requiredSkills ?? job.skills ?? [];
   return (
     <Card className="hover:border-indigo-600 transition-colors cursor-default">

@@ -154,7 +154,7 @@ export default function GapStep() {
     );
   }
 
-  const { satisfied = [], partial = [], missing = [], matchScore = 0, gapScore = 0, totalRequired = 0 } = report ?? {};
+  const { satisfied = [], partial = [], missing = [], transferable = [], matchScore = 0, gapScore = 0, totalRequired = 0 } = report ?? {};
   const noData = totalRequired === 0;
 
   return (
@@ -198,7 +198,7 @@ export default function GapStep() {
       {/* ── Scores ─────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="flex flex-col items-center justify-center py-6">
-          <RingScore value={matchScore} color="#6366f1" label="Match Score" sub="Skills aligned" />
+          <RingScore value={matchScore} color="#6366f1" label="Match Score" sub="Exact + partial credit" />
         </Card>
         <Card className="flex flex-col items-center justify-center py-6">
           <RingScore value={gapScore} color="#ef4444" label="Gap Score" sub="Skills to bridge" />
@@ -234,7 +234,7 @@ export default function GapStep() {
             iconColor="text-emerald-400" borderColor="border-emerald-600"
           />
           <SkillColumn
-            icon={MinusCircle} title="Partial Match" skills={partial} variant="partial"
+            icon={MinusCircle} title="Close Match (partial credit)" skills={partial} variant="partial"
             iconColor="text-amber-400" borderColor="border-amber-500"
           />
           <SkillColumn
@@ -258,8 +258,8 @@ export default function GapStep() {
             {candidateSkills.map((s) => {
               const norm = s.toLowerCase();
               const isSatisfied = satisfied.some(x => x.toLowerCase() === norm);
-              const isMissing   = missing.some(x => x.toLowerCase() === norm);
               const isPartial   = partial.some(x => x.toLowerCase() === norm);
+              const isMissing   = missing.some(x => x.toLowerCase() === norm);
               const variant = isSatisfied ? 'satisfied' : isPartial ? 'partial' : isMissing ? 'missing' : 'brand';
               return <SkillBadge key={s} skill={s} variant={variant} />;
             })}
@@ -269,6 +269,27 @@ export default function GapStep() {
               Skills are color-coded once compared against job requirements. Select a role with listed skills for a richer analysis.
             </p>
           )}
+        </Card>
+      )}
+
+      {/* ── Transferable Skills ────────────────────────────────────────────── */}
+      {transferable.length > 0 && !noData && (
+        <Card className="border-t-4 border-violet-600">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp size={16} className="text-violet-400" />
+            <h3 className="text-sm font-semibold text-white">Transferable Skills</h3>
+            <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-violet-900/60 text-violet-300">
+              {transferable.length}
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mb-3">
+            These are your additional skills beyond what this role requires — they show breadth and may still impress hiring managers.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {transferable.map((s) => (
+              <SkillBadge key={s} skill={s} variant="neutral" />
+            ))}
+          </div>
         </Card>
       )}
 

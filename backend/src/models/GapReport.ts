@@ -4,6 +4,7 @@ export interface IGapDetail {
   missing: string[];
   partial: string[];
   satisfied: string[];
+  transferable: string[];
   gapScore: number;
   matchScore: number;
   totalRequired: number;
@@ -29,6 +30,7 @@ const GapReportSchema = new Schema<IGapReport>(
       missing: { type: [String], default: [] },
       partial: { type: [String], default: [] },
       satisfied: { type: [String], default: [] },
+      transferable: { type: [String], default: [] },
       gapScore: { type: Number, default: 0 },
       matchScore: { type: Number, default: 0 },
       totalRequired: { type: Number, default: 0 },

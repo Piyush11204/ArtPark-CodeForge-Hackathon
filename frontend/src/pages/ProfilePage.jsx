@@ -32,10 +32,14 @@ function Section({ icon: Icon, title, children, defaultOpen = true }) {
 
 function InfoRow({ label, value }) {
   if (!value) return null;
+  const display = value && typeof value === 'object'
+    ? [value.city, value.state, value.country].filter(Boolean).join(', ') || value.address || ''
+    : value;
+  if (!display) return null;
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-1 py-2 border-b border-slate-700/50 last:border-0">
       <span className="text-xs text-slate-500 w-28 shrink-0">{label}</span>
-      <span className="text-sm text-slate-200 break-all">{value}</span>
+      <span className="text-sm text-slate-200 break-all">{display}</span>
     </div>
   );
 }
