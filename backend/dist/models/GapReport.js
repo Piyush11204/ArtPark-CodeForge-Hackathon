@@ -43,6 +43,7 @@ const GapReportSchema = new mongoose_1.Schema({
         missing: { type: [String], default: [] },
         partial: { type: [String], default: [] },
         satisfied: { type: [String], default: [] },
+        transferable: { type: [String], default: [] },
         gapScore: { type: Number, default: 0 },
         matchScore: { type: Number, default: 0 },
         totalRequired: { type: Number, default: 0 },

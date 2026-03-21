@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteResume = exports.getResumeById = exports.getMyResumes = exports.uploadResume = void 0;
+exports.deleteResume = exports.updateParsedData = exports.getResumeById = exports.getMyResumes = exports.uploadResume = void 0;
 const errorHandler_1 = require("../middleware/errorHandler");
 const Resume_1 = require("../models/Resume");
 const resumeParser_1 = require("../services/resumeParser");
@@ -49,6 +49,29 @@ exports.getResumeById = (0, errorHandler_1.asyncHandler)(async (req, res) => {
     if (!resume)
         throw (0, errorHandler_1.createError)('Resume not found', 404);
     res.json({ success: true, data: resume });
+});
+exports.updateParsedData = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+    const resume = await Resume_1.ResumeModel.findOne({
+        _id: req.params.id,
+        userId: req.user.id,
+    });
+    if (!resume)
+        throw (0, errorHandler_1.createError)('Resume not found', 404);
+    const { parsedData } = req.body;
+    if (!parsedData)
+        throw (0, errorHandler_1.createError)('parsedData is required', 400);
+    const normalizedSkills = (0, gapEngine_1.extractSkillsFromParsedData)(parsedData);
+    resume.parsedData = parsedData;
+    resume.normalizedSkills = normalizedSkills;
+    await resume.save();
+    res.json({
+        success: true,
+        data: {
+            resumeId: resume._id,
+            normalizedSkills,
+            parsedData: resume.parsedData,
+        },
+    });
 });
 exports.deleteResume = (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const resume = await Resume_1.ResumeModel.findOne({

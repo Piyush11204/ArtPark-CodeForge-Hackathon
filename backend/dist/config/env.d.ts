@@ -2,6 +2,7 @@ export declare function validateEnv(): void;
 export declare const env: {
     PORT: number;
     NODE_ENV: string;
+    isProd: boolean;
     MONGODB_URI: string;
     JWT_SECRET: string;
     JWT_REFRESH_SECRET: string;

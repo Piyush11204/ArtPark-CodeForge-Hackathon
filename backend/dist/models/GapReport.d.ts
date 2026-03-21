@@ -3,6 +3,7 @@ export interface IGapDetail {
     missing: string[];
     partial: string[];
     satisfied: string[];
+    transferable: string[];
     gapScore: number;
     matchScore: number;
     totalRequired: number;
