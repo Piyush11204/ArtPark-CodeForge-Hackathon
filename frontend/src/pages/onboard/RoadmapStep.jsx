@@ -110,9 +110,10 @@ export default function RoadmapStep() {
     if (!gapReportId) { navigate('/onboard/gap'); return; }
     const generate = async () => {
       try {
-        const res = await pathwayService.generate(gapReportId);
-        setLocalPathway(res.data);
-        setPathway(res.data._id);
+        // Returns the pathway document directly
+        const pathway = await pathwayService.generate(gapReportId);
+        setLocalPathway(pathway);
+        setPathway(pathway._id);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to generate roadmap.');
       } finally {
@@ -125,8 +126,16 @@ export default function RoadmapStep() {
   const handleStatusUpdate = async (stepId, status) => {
     if (!pathway) return;
     try {
-      const res = await pathwayService.updateStep(pathway._id, stepId, status);
-      setLocalPathway(res.data);
+      // API returns { step, completedHours, progressPercent } — merge into local state
+      const update = await pathwayService.updateStep(pathway._id, stepId, status);
+      setLocalPathway((prev) => ({
+        ...prev,
+        steps: prev.steps.map((s) =>
+          String(s._id) === String(stepId) ? { ...s, status } : s
+        ),
+        completedHours: update?.completedHours ?? prev.completedHours,
+        completionPercentage: update?.progressPercent ?? prev.completionPercentage,
+      }));
     } catch {
       // silent
     }

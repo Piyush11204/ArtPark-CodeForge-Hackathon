@@ -1,9 +1,13 @@
 import api from './api';
 
 export const authService = {
-  register: (data) => api.post('/auth/register', data),
-  login: (data) => api.post('/auth/login', data),
-  refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
-  getMe: () => api.get('/auth/me'),
+  // Returns { user, accessToken, refreshToken }
+  register: (name, email, password) =>
+    api.post('/auth/register', { name, email, password }).then((r) => r.data.data),
+  login: (email, password) =>
+    api.post('/auth/login', { email, password }).then((r) => r.data.data),
+  refresh: (refreshToken) =>
+    api.post('/auth/refresh', { refreshToken }).then((r) => r.data.data),
+  getMe: () => api.get('/auth/me').then((r) => r.data.data),
   logout: () => api.post('/auth/logout'),
 };

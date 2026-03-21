@@ -64,6 +64,32 @@ export const getResumeById = asyncHandler(async (req: AuthRequest, res: Response
   res.json({ success: true, data: resume });
 });
 
+export const updateParsedData = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const resume = await ResumeModel.findOne({
+    _id: req.params.id,
+    userId: req.user!.id,
+  });
+  if (!resume) throw createError('Resume not found', 404);
+
+  const { parsedData } = req.body;
+  if (!parsedData) throw createError('parsedData is required', 400);
+
+  const normalizedSkills = extractSkillsFromParsedData(parsedData);
+
+  resume.parsedData = parsedData;
+  resume.normalizedSkills = normalizedSkills;
+  await resume.save();
+
+  res.json({
+    success: true,
+    data: {
+      resumeId: resume._id,
+      normalizedSkills,
+      parsedData: resume.parsedData,
+    },
+  });
+});
+
 export const deleteResume = asyncHandler(async (req: AuthRequest, res: Response) => {
   const resume = await ResumeModel.findOne({
     _id: req.params.id,

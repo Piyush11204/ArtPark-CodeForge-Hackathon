@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import JobsPage from './pages/JobsPage';
 import PathwayPage from './pages/PathwayPage';
 
+import ProfilePage from './pages/ProfilePage';
 import OnboardFlow from './pages/onboard/OnboardFlow';
 import UploadStep from './pages/onboard/UploadStep';
 import JobPickerStep from './pages/onboard/JobPickerStep';
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
         children: [
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/pathway/:id', element: <PathwayPage /> },
+          { path: '/profile', element: <ProfilePage /> },
         ],
       },
 

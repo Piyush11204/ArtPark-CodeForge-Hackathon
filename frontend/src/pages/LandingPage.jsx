@@ -9,7 +9,17 @@ export default function LandingPage() {
     <div className="min-h-screen bg-slate-950 text-white">
       {/* Hero */}
       <section className="relative overflow-hidden py-24 px-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-slate-950 to-slate-950" />
+        {/* Video background */}
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          src="/hero.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+        {/* Dark overlay so text stays readable */}
+        <div className="absolute inset-0 bg-slate-950/70" />
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-indigo-900/40 border border-indigo-700 rounded-full px-4 py-1.5 text-sm text-indigo-300 mb-6">
             <Zap size={14} /> ARTPARK CodeForge Hackathon 2026

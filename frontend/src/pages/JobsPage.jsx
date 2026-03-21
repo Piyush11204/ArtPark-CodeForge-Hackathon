@@ -10,16 +10,22 @@ const WORK_TYPES = ['', 'remote', 'onsite', 'hybrid'];
 const JOB_TYPES = ['', 'full-time', 'part-time', 'contract', 'internship'];
 
 function JobCard({ job, onSelect, selectable }) {
+  // Job model uses jobTitle/companyName/jobLocation etc.
+  // Map frontend keys to the correct backend field names
+  const jobTitle = job.jobTitle ?? job.title;
+  const company = job.companyName ?? job.company;
+  const location = job.jobLocation ?? job.location;
+  const skills = job.requiredSkills ?? job.skills ?? [];
   return (
     <Card className="hover:border-indigo-600 transition-colors cursor-default">
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white truncate">{job.title}</h3>
-          <p className="text-sm text-slate-400 mt-0.5">{job.company}</p>
+          <h3 className="font-semibold text-white truncate">{jobTitle}</h3>
+          <p className="text-sm text-slate-400 mt-0.5">{company}</p>
           <div className="flex flex-wrap gap-2 mt-2">
-            {job.location && (
+            {location && (
               <span className="flex items-center gap-1 text-xs text-slate-400">
-                <MapPin size={12} /> {job.location}
+                <MapPin size={12} /> {location}
               </span>
             )}
             {job.workType && (
@@ -33,15 +39,15 @@ function JobCard({ job, onSelect, selectable }) {
               </span>
             )}
           </div>
-          {job.skills?.length > 0 && (
+          {skills.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {job.skills.slice(0, 5).map((s) => (
+              {skills.slice(0, 5).map((s) => (
                 <span key={s} className="text-xs bg-indigo-900/40 text-indigo-300 border border-indigo-800 px-2 py-0.5 rounded-full">
                   {s}
                 </span>
               ))}
-              {job.skills.length > 5 && (
-                <span className="text-xs text-slate-500">+{job.skills.length - 5}</span>
+              {skills.length > 5 && (
+                <span className="text-xs text-slate-500">+{skills.length - 5}</span>
               )}
             </div>
           )}
@@ -52,9 +58,9 @@ function JobCard({ job, onSelect, selectable }) {
               Select
             </Button>
           )}
-          {job.applicationUrl && (
+          {job.jobLink && (
             <a
-              href={job.applicationUrl}
+              href={job.jobLink}
               target="_blank"
               rel="noopener noreferrer"
               className="text-slate-400 hover:text-white"
@@ -83,7 +89,6 @@ export default function JobsPage({ selectable = false }) {
   const [debouncedQ, setDebouncedQ] = useState('');
   const [workType, setWorkType] = useState('');
   const [jobType, setJobType] = useState('');
-  const [category, setCategory] = useState('');
 
   const LIMIT = 12;
   const totalPages = Math.ceil(total / LIMIT);
@@ -95,7 +100,7 @@ export default function JobsPage({ selectable = false }) {
   }, [q]);
 
   useEffect(() => {
-    jobService.getCategories().then((r) => setCategories(r.data || [])).catch(() => {});
+    jobService.getCategories().then((r) => setCategories(r?.jobTypes || [])).catch(() => {});
   }, []);
 
   const fetchJobs = useCallback(async () => {
@@ -103,20 +108,20 @@ export default function JobsPage({ selectable = false }) {
     try {
       let res;
       if (debouncedQ.trim()) {
-        res = await jobService.searchJobs(debouncedQ, page, LIMIT);
+        res = await jobService.searchJobs(debouncedQ, { page, limit: LIMIT });
       } else {
-        res = await jobService.getJobs({ page, limit: LIMIT, workType, jobType, category });
+        res = await jobService.getJobs({ page, limit: LIMIT, workType, jobType });
       }
-      setJobs(res.data || []);
-      setTotal(res.total ?? res.data?.length ?? 0);
+      setJobs(res?.jobs || []);
+      setTotal(res?.pagination?.total ?? 0);
     } finally {
       setLoading(false);
     }
-  }, [debouncedQ, page, workType, jobType, category]);
+  }, [debouncedQ, page, workType, jobType]);
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedQ, workType, jobType, category]);
+  }, [debouncedQ, workType, jobType]);
 
   useEffect(() => {
     fetchJobs();
@@ -167,11 +172,11 @@ export default function JobsPage({ selectable = false }) {
         </select>
         {categories.length > 0 && (
           <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            value={jobType}
+            onChange={(e) => setJobType(e.target.value)}
             className="bg-slate-700 text-sm text-white rounded-lg px-3 py-2 border-0 outline-none cursor-pointer max-w-[180px]"
           >
-            <option value="">All Categories</option>
+            <option value="">All Job Types</option>
             {categories.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}

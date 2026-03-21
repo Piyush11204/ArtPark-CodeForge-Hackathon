@@ -5,9 +5,42 @@ import { IParsedData } from '../models/Resume';
 import { IJob } from '../models/Job';
 import { env } from '../config/env';
 
+// ─── Shared skill keyword list used for local JD extraction ──────────────────
+const JD_SKILL_KEYWORDS = [
+  'javascript','typescript','python','java','c++','c#','go','rust','ruby','php','swift','kotlin','scala',
+  'r','matlab','bash','shell','sql','html','css','xml','json',
+  'react','angular','vue','next.js','nuxt','svelte','express','fastapi','django','flask','spring',
+  'spring boot','nestjs','node.js','nodejs','graphql','rest','grpc','tailwind','bootstrap','redux',
+  'mongodb','postgresql','mysql','sqlite','redis','elasticsearch','dynamodb','cassandra','neo4j',
+  'aws','azure','gcp','docker','kubernetes','terraform','ansible','jenkins','github actions','ci/cd',
+  'git','linux','nginx','webpack','vite','jest','pytest','cypress','selenium',
+  'tensorflow','pytorch','keras','scikit-learn','pandas','numpy','openai','langchain',
+  'machine learning','deep learning','nlp','computer vision','data science','data analysis',
+  'excel','powerpoint','word','google sheets','looker','tableau','power bi',
+  'salesforce','hubspot','zendesk','jira','confluence','asana','notion','slack',
+  'figma','sketch','adobe xd','photoshop','illustrator',
+  'agile','scrum','kanban','product management','project management',
+  'communication','leadership','teamwork','problem solving','critical thinking',
+  'customer success','account management','crm','saas','b2b','b2c','onboarding',
+  'seo','google analytics','social media','content marketing','copywriting',
+];
+
+/**
+ * Locally extracts skills from free-form text without any external service.
+ */
+function localExtractSkillsFromText(text: string): string[] {
+  if (!text) return [];
+  const lower = text.toLowerCase();
+  return JD_SKILL_KEYWORDS.filter((kw) => {
+    // Word-boundary check: the keyword should not be a substring of another word
+    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(?<![a-z])${escaped}(?![a-z])`, 'i').test(lower);
+  });
+}
+
 /**
  * Calls the Python ML microservice to extract skills from raw JD text.
- * Returns empty array on any failure (non-blocking).
+ * Falls back to local keyword extraction on any failure.
  */
 async function extractSkillsFromJD(description: string): Promise<string[]> {
   if (!description) return [];
@@ -17,10 +50,12 @@ async function extractSkillsFromJD(description: string): Promise<string[]> {
       { text: description },
       { timeout: 8000 }
     );
-    return (res.data?.skills ?? []) as string[];
+    const mlSkills = (res.data?.skills ?? []) as string[];
+    if (mlSkills.length > 0) return mlSkills;
   } catch {
-    return [];
+    // ML service unavailable — fall through to local extractor
   }
+  return localExtractSkillsFromText(description);
 }
 
 /**
@@ -58,10 +93,14 @@ export async function computeGap(
 
   let requiredSkills = job.requiredSkills ?? [];
 
-  // Fallback: extract skills from raw description via ML service
+  // Fallback 1: extract from job description (ML first, then local keywords)
   if (requiredSkills.length === 0 && job.jobDescription) {
-    const extracted = await extractSkillsFromJD(job.jobDescription);
-    requiredSkills = extracted;
+    requiredSkills = await extractSkillsFromJD(job.jobDescription);
+  }
+
+  // Fallback 2: extract from the job title itself (e.g. "React Developer")
+  if (requiredSkills.length === 0 && job.jobTitle) {
+    requiredSkills = localExtractSkillsFromText(job.jobTitle);
   }
 
   const normalizedRequired = normalizeSkills(requiredSkills);

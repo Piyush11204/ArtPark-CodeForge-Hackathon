@@ -32,13 +32,13 @@ export default function DashboardPage() {
     const load = async () => {
       try {
         const [r, g, p] = await Promise.all([
-          resumeService.getMyResumes().catch(() => ({ data: [] })),
-          gapService.getHistory().catch(() => ({ data: [] })),
-          pathwayService.getMyPathways().catch(() => ({ data: [] })),
+          resumeService.getMyResumes().catch(() => []),
+          gapService.getHistory().catch(() => ({})),
+          pathwayService.getMyPathways().catch(() => []),
         ]);
-        setResumes(r.data || []);
-        setGapHistory(g.data || []);
-        setPathways(p.data || []);
+        setResumes(Array.isArray(r) ? r : []);
+        setGapHistory(g?.reports ?? []);
+        setPathways(Array.isArray(p) ? p : []);
       } finally {
         setLoading(false);
       }
@@ -102,13 +102,13 @@ export default function DashboardPage() {
                 <li key={report._id} className="flex items-center justify-between p-3 rounded-lg bg-slate-700/50">
                   <div>
                     <div className="text-sm font-medium text-white truncate max-w-[180px]">
-                      {report.job?.title ?? 'Unknown Job'}
+                      {report.jobId?.jobTitle ?? 'Unknown Job'}
                     </div>
-                    <div className="text-xs text-slate-400">{report.job?.company}</div>
+                    <div className="text-xs text-slate-400">{report.jobId?.companyName}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-xs font-semibold text-indigo-300">
-                      {Math.round((report.matchScore ?? 0) * 100)}% match
+                      {Math.round(report.gapReport?.matchScore ?? 0)}% match
                     </div>
                     <div className="text-xs text-red-400">
                       {report.gapReport?.missing?.length ?? 0} missing
@@ -136,16 +136,16 @@ export default function DashboardPage() {
             <div>
               <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-white font-medium truncate max-w-[200px]">
-                  {latestPathway.job?.title ?? 'Pathway'}
+                  {latestPathway.jobId?.jobTitle ?? 'Pathway'}
                 </span>
                 <span className="text-xs text-slate-400">
-                  {latestPathway.completionPercentage ?? 0}% done
+                  {latestPathway.progressPercent ?? 0}% done
                 </span>
               </div>
               <div className="w-full bg-slate-700 rounded-full h-2 mb-4">
                 <div
                   className="bg-indigo-500 h-2 rounded-full transition-all"
-                  style={{ width: `${latestPathway.completionPercentage ?? 0}%` }}
+                  style={{ width: `${latestPathway.progressPercent ?? 0}%` }}
                 />
               </div>
               <ul className="space-y-2">

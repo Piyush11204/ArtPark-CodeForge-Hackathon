@@ -84,15 +84,23 @@ export default function PathwayPage() {
 
   useEffect(() => {
     pathwayService.getById(id)
-      .then((r) => setPathway(r.data))
+      .then((data) => setPathway(data))
       .catch(() => setError('Failed to load pathway.'))
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleToggle = async (stepId, status) => {
     try {
-      const res = await pathwayService.updateStep(id, stepId, status);
-      setPathway(res.data);
+      // API returns { step, completedHours, progressPercent }
+      const update = await pathwayService.updateStep(id, stepId, status);
+      setPathway((prev) => ({
+        ...prev,
+        steps: prev.steps.map((s) =>
+          String(s._id) === String(stepId) ? { ...s, status } : s
+        ),
+        completedHours: update?.completedHours ?? prev.completedHours,
+        progressPercent: update?.progressPercent ?? prev.progressPercent,
+      }));
     } catch { /* silent */ }
   };
 
@@ -100,7 +108,7 @@ export default function PathwayPage() {
   if (error) return <div className="max-w-xl mx-auto py-10"><Alert type="error" message={error} /></div>;
 
   const steps = pathway?.steps ?? [];
-  const pct = pathway?.completionPercentage ?? 0;
+  const pct = pathway?.progressPercent ?? 0;
   const hoursLeft = steps
     .filter((s) => s.status !== 'completed')
     .reduce((sum, s) => sum + (s.estimatedHours ?? 0), 0);
@@ -118,11 +126,11 @@ export default function PathwayPage() {
         <div className="flex items-center gap-2 mb-1">
           <Target size={20} className="text-indigo-400" />
           <h1 className="text-2xl font-bold text-white">
-            {pathway?.job?.title ?? 'Learning Pathway'}
+            {pathway?.jobId?.jobTitle ?? 'Learning Pathway'}
           </h1>
         </div>
-        {pathway?.job?.company && (
-          <p className="text-slate-400 ml-7">{pathway.job.company}</p>
+        {pathway?.jobId?.companyName && (
+          <p className="text-slate-400 ml-7">{pathway.jobId.companyName}</p>
         )}
       </div>
 

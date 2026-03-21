@@ -33,7 +33,7 @@ export default function JobPickerStep() {
       } else {
         res = await jobService.getJobs({ page: 1, limit: 20 });
       }
-      setJobs(res.data || []);
+      setJobs(res?.jobs || []);
     } catch {
       setError('Failed to load jobs.');
     } finally {
@@ -89,7 +89,10 @@ export default function JobPickerStep() {
           <p className="text-center text-slate-400 py-10">No jobs found.</p>
         ) : jobs.map((job) => {
           const isSelected = selectedJob?._id === job._id;
-          return (
+          const title = job.jobTitle ?? job.title;
+            const company = job.companyName ?? job.company;
+            const location = job.jobLocation ?? job.location;
+            return (
             <button
               key={job._id}
               onClick={() => handleSelect(job)}
@@ -100,18 +103,18 @@ export default function JobPickerStep() {
             >
               <div className="flex justify-between items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-white truncate">{job.title}</p>
-                  <p className="text-sm text-slate-400">{job.company}</p>
+                  <p className="font-medium text-white truncate">{title}</p>
+                  <p className="text-sm text-slate-400">{company}</p>
                   <div className="flex gap-2 mt-1 flex-wrap">
-                    {job.location && (
+                    {location && (
                       <span className="flex items-center gap-1 text-xs text-slate-500">
-                        <MapPin size={11} />{job.location}
+                        <MapPin size={11} />{location}
                       </span>
                     )}
                     {job.workType && (
                       <span className="text-xs text-slate-500 capitalize">{job.workType}</span>
                     )}
-                    {job.skills?.slice(0, 3).map((s) => (
+                    {(job.requiredSkills ?? job.skills ?? []).slice(0, 3).map((s) => (
                       <span key={s} className="text-xs bg-indigo-900/40 text-indigo-300 px-1.5 rounded">{s}</span>
                     ))}
                   </div>
