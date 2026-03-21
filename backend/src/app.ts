@@ -89,7 +89,11 @@ app.use('/api/pathway', pathwayRoutes);
 app.use('/api/courses', courseRoutes);
 
 // Serve React frontend build (works in both dev and production)
-const frontendDist = path.join(__dirname, '../../frontend/dist');
+// FRONTEND_DIST_PATH env var overrides the default (useful for Docker builds)
+const frontendDist = process.env.FRONTEND_DIST_PATH
+  ? path.resolve(process.env.FRONTEND_DIST_PATH)
+  : path.join(__dirname, '../../frontend/dist');
+
 app.use(express.static(frontendDist));
 
 // SPA catch-all: any non-/api route serves index.html so React Router works
