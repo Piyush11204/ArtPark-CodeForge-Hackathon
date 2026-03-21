@@ -6,11 +6,6 @@ import { env } from '../config/env';
 import { logger } from '../utils/logger';
 import { IParsedData, IParsedSkills, IWorkExperience, IEducation, ICertification, IProject } from '../models/Resume';
 
-export interface ParseResumeResponse {
-  status: string;
-  data: IParsedData;
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function extractEmail(text: string): string {
@@ -323,7 +318,36 @@ async function localFallbackParse(buffer: Buffer, filename: string): Promise<IPa
 // ─── Main entry ───────────────────────────────────────────────────────────────
 
 /**
- * Calls the live resume parser API with a file buffer.
+ * Normalise the raw API response into our IParsedData shape.
+ * Handles the CredX /api/resume/parse response as well as the old Flask shape.
+ *
+ * Known response shapes we handle:
+ *   { status, data: { ... } }                      ← old Flask shape
+ *   { success, data: { ... } }                      ← CredX shape A
+ *   { success, resume: { ... } }                    ← CredX shape B
+ *   { data: { parsedData: { ... } } }               ← CredX shape C
+ *   { parsedData: { ... } }                         ← CredX shape D
+ *   { ... }   (flat — the object itself IS the data) ← CredX shape E
+ */
+function normalizeApiResponse(raw: Record<string, unknown>): IParsedData | null {
+  // --- shape A / old Flask ---
+  if (raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)) {
+    const d = raw.data as Record<string, unknown>;
+    if (d.personal_information || d.skills || d.work_experience) return d as unknown as IParsedData;
+    // nested parsedData inside data
+    if (d.parsedData && typeof d.parsedData === 'object') return d.parsedData as unknown as IParsedData;
+  }
+  // --- shape B ---
+  if (raw.resume && typeof raw.resume === 'object') return raw.resume as unknown as IParsedData;
+  // --- shape D ---
+  if (raw.parsedData && typeof raw.parsedData === 'object') return raw.parsedData as unknown as IParsedData;
+  // --- shape E: the root object itself ---
+  if (raw.personal_information || raw.skills || raw.work_experience) return raw as unknown as IParsedData;
+  return null;
+}
+
+/**
+ * Calls the live CredX resume parser API with a file buffer.
  * Falls back to local text extraction if the external service is unavailable.
  */
 export async function parseResumeFromBuffer(
@@ -331,39 +355,69 @@ export async function parseResumeFromBuffer(
   filename: string,
   mimetype: string
 ): Promise<IParsedData> {
-  const formData = new FormData();
-  formData.append('file', buffer, {
-    filename,
-    contentType: mimetype,
-  });
-  formData.append('use_openai', 'true');
-
   logger.info(`Calling resume parser API for file: ${filename}`);
 
-  try {
-    const response = await axios.post<ParseResumeResponse>(
-      `${env.RESUME_PARSER_URL}/parse_resume`,
-      formData,
-      {
-        headers: { ...formData.getHeaders() },
-        timeout: 30000,
+  const buildForm = (fieldName: string) => {
+    const fd = new FormData();
+    fd.append(fieldName, buffer, { filename, contentType: mimetype });
+    return fd;
+  };
+
+  // Try with field name 'file' first, then 'resume' as fallback
+  for (const fieldName of ['file', 'resume']) {
+    const formData = buildForm(fieldName);
+    try {
+      const response = await axios.post(
+        env.RESUME_PARSER_URL,          // full URL — no suffix appended
+        formData,
+        {
+          headers: { ...formData.getHeaders() },
+          timeout: 45000,
+        }
+      );
+
+      const raw = response.data as Record<string, unknown>;
+      logger.info(`Parser API response (field=${fieldName}): status=${response.status}, keys=${Object.keys(raw).join(',')}`);
+
+      const parsed = normalizeApiResponse(raw);
+      if (parsed) {
+        // Ensure mandatory metadata field is present
+        if (!parsed.metadata) {
+          (parsed as IParsedData).metadata = {
+            filename,
+            parsed_at: new Date().toISOString(),
+            parser_version: 'credx-api',
+            openai_used: true,
+            text_length: 0,
+          };
+        }
+        logger.info(`Resume parsed successfully via API (field=${fieldName}): ${filename}`);
+        return parsed;
       }
-    );
 
-    if (response.data.status !== 'success' && response.data.status !== 'ok') {
-      throw new Error(`Parser API returned status: ${response.data.status}`);
-    }
+      logger.warn(`Parser API response did not contain recognised data shape (field=${fieldName}), raw keys: ${Object.keys(raw).join(',')}`);
+      // Don't retry with different field name if we got a 2xx but unrecognised shape — fall through to fallback
+      break;
 
-    logger.info(`Resume parsed successfully via API: ${filename}`);
-    return response.data.data;
-  } catch (err) {
-    // Any network / 5xx / timeout error → use local fallback instead of crashing
-    if (axios.isAxiosError(err)) {
-      const status = err.response?.status;
-      const msg = err.response?.data?.error || err.message;
-      logger.warn(`Resume parser API unavailable (${status ?? 'network error'}: ${msg}), using local fallback`);
-      return localFallbackParse(buffer, filename);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const msg = err.response?.data?.message || err.response?.data?.error || err.message;
+        if (status === 422 || status === 400) {
+          // Wrong field name — retry with next field name
+          logger.warn(`Parser API rejected field="${fieldName}" (${status}: ${msg}), retrying…`);
+          continue;
+        }
+        logger.warn(`Resume parser API unavailable (${status ?? 'network error'}: ${msg}), using local fallback`);
+        break;
+      }
+      // Non-axios error (e.g. timeout that isn't axios) — fall through
+      logger.warn(`Resume parser unexpected error: ${(err as Error).message}`);
+      break;
     }
-    throw err;
   }
+
+  // All API attempts failed — use local PDF parser
+  return localFallbackParse(buffer, filename);
 }
+
