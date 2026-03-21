@@ -8,6 +8,8 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import JobsPage from './pages/JobsPage';
 import PathwayPage from './pages/PathwayPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
 
 import ProfilePage from './pages/ProfilePage';
 import OnboardFlow from './pages/onboard/OnboardFlow';
@@ -24,6 +26,8 @@ const router = createBrowserRouter([
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
       { path: '/jobs', element: <JobsPage /> },
+      { path: '/about', element: <AboutPage /> },
+      { path: '/contact', element: <ContactPage /> },
 
       // Protected routes
       {

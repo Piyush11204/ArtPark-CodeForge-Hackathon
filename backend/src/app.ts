@@ -11,6 +11,7 @@ import jobRoutes from './routes/jobRoutes';
 import resumeRoutes from './routes/resumeRoutes';
 import gapRoutes from './routes/gapRoutes';
 import pathwayRoutes from './routes/pathwayRoutes';
+import courseRoutes from './routes/courseRoutes';
 
 const app = express();
 
@@ -67,6 +68,7 @@ app.use('/api/jobs', jobRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/gap', gapRoutes);
 app.use('/api/pathway', pathwayRoutes);
+app.use('/api/courses', courseRoutes);
 
 // 404
 app.use((_req, res) => {
