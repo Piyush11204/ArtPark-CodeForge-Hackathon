@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+
+  # ── Node.js + Express backend ────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: artpark-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      RESUME_PARSER_URL: ${RESUME_PARSER_URL}
+      ML_SERVICE_URL: http://ml-service:6000
+      FRONTEND_URL: ${FRONTEND_URL}
+    depends_on:
+      ml-service:
+        condition: service_healthy
+    networks:
+      - artpark-net
+
+  # ── React frontend (nginx) ────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: artpark-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - artpark-net
+
+  # ── Python ML microservice ────────────────────────────────────────────────
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: artpark-ml
+    restart: unless-stopped
+    ports:
+      - "6000:6000"
+    environment:
+      FLASK_ENV: production
+      PORT: 6000
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - artpark-net
+
+networks:
+  artpark-net:
+    driver: bridge

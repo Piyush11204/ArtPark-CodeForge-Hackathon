@@ -17,19 +17,11 @@ export const analyzeGap = asyncHandler(async (req: AuthRequest, res: Response) =
   const job = await JobModel.findById(jobId);
   if (!job) throw createError('Job not found', 404);
 
-  // If job has no required skills yet, return a partial gap report
-  if (job.requiredSkills.length === 0 && job.preferredSkills.length === 0) {
-    res.status(202).json({
-      success: true,
-      message:
-        'This job has no skill data extracted yet. Re-try after skill extraction completes or pick another job.',
-      data: null,
-    });
-    return;
-  }
+  // If job has no required skills yet, ML service will extract from description
+  // (computeGap handles this internally — no need to early-return)
 
-  // Compute gap
-  const gapDetail = computeGap(resume.normalizedSkills, job);
+  // Compute gap (async — may call ML service for JD skill extraction)
+  const gapDetail = await computeGap(resume.normalizedSkills, job);
 
   // Save gap report
   const gapReport = await GapReportModel.create({
