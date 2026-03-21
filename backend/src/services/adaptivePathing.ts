@@ -96,7 +96,7 @@ export async function generatePathway(
     isActive: true,
   }).lean();
 
-  const courseMap = new Map<string, ICourse>(courses.map((c) => [c.skill, c as ICourse]));
+  const courseMap = new Map<string, ICourse>(courses.map((c) => [c.skill, c as unknown as ICourse]));
 
   // Build skill nodes with prerequisite info
   const nodeMap = new Map<string, SkillNode>();

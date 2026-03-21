@@ -63,8 +63,10 @@ UserSchema.methods.comparePassword = async function (candidate: string): Promise
 };
 
 // Never expose passwordHash or refreshToken in JSON output
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 UserSchema.set('toJSON', {
-  transform: (_doc, ret) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transform: (_doc: any, ret: any) => {
     delete ret.passwordHash;
     delete ret.refreshToken;
     delete ret.__v;

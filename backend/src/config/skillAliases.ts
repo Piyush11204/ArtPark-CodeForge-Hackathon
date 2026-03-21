@@ -78,7 +78,7 @@ export const SKILL_ALIASES: Record<string, string> = {
 
   // Mobile
   flutter: 'flutter',
-  'react native': 'react-native',
+  'react-native': 'react-native',
   ios: 'ios',
   android: 'android',
 

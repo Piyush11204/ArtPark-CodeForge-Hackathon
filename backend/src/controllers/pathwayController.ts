@@ -82,7 +82,7 @@ export const updateStepStatus = asyncHandler(async (req: AuthRequest, res: Respo
   });
   if (!pathway) throw createError('Pathway not found', 404);
 
-  const step = pathway.steps.find((s) => String(s._id) === stepId);
+  const step = pathway.steps.find((s) => String((s as typeof s & { _id: unknown })._id) === stepId);
   if (!step) throw createError('Step not found', 404);
 
   const wasCompleted = step.status === 'completed';
