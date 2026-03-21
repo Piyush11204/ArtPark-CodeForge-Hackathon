@@ -1,0 +1,82 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SKILL_ALIASES = void 0;
+exports.normalizeSkill = normalizeSkill;
+exports.normalizeSkills = normalizeSkills;
+exports.SKILL_ALIASES = {
+    js: 'javascript',
+    'node.js': 'nodejs',
+    node: 'nodejs',
+    'express.js': 'express',
+    expressjs: 'express',
+    'react.js': 'react',
+    reactjs: 'react',
+    'react native': 'react-native',
+    'next.js': 'nextjs',
+    'nuxt.js': 'nuxtjs',
+    'vue.js': 'vue',
+    vuejs: 'vue',
+    'angular.js': 'angular',
+    angularjs: 'angular',
+    ts: 'typescript',
+    'jquery': 'jquery',
+    py: 'python',
+    'python3': 'python',
+    'tailwind css': 'tailwindcss',
+    'tailwind': 'tailwindcss',
+    'bootstrap css': 'bootstrap',
+    scss: 'sass',
+    mongo: 'mongodb',
+    'mongo db': 'mongodb',
+    postgres: 'postgresql',
+    pg: 'postgresql',
+    mysql: 'mysql',
+    mssql: 'sql server',
+    'ms sql': 'sql server',
+    redis: 'redis',
+    elastic: 'elasticsearch',
+    aws: 'amazon web services',
+    gcp: 'google cloud platform',
+    'google cloud': 'google cloud platform',
+    k8s: 'kubernetes',
+    'docker compose': 'docker',
+    'machine learning': 'ml',
+    'deep learning': 'dl',
+    'natural language processing': 'nlp',
+    'gen ai': 'generative ai',
+    'openai api': 'openai',
+    langchain: 'langchain',
+    tensorflow: 'tensorflow',
+    pytorch: 'pytorch',
+    'hugging face': 'huggingface',
+    'hf': 'huggingface',
+    sql: 'sql',
+    html5: 'html',
+    css3: 'css',
+    git: 'git',
+    github: 'github',
+    graphql: 'graphql',
+    'rest api': 'rest',
+    restful: 'rest',
+    'ci/cd': 'ci/cd',
+    cicd: 'ci/cd',
+    'object oriented programming': 'oop',
+    oop: 'oop',
+    dsa: 'data structures and algorithms',
+    flutter: 'flutter',
+    'react-native': 'react-native',
+    ios: 'ios',
+    android: 'android',
+    jest: 'jest',
+    mocha: 'mocha',
+    cypress: 'cypress',
+    selenium: 'selenium',
+};
+function normalizeSkill(skill) {
+    const lower = skill.toLowerCase().trim();
+    return exports.SKILL_ALIASES[lower] ?? lower;
+}
+function normalizeSkills(skills) {
+    return [...new Set(skills.map(normalizeSkill).filter(Boolean))];
+}
+//# sourceMappingURL=skillAliases.js.map
