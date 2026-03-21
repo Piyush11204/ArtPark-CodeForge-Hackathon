@@ -88,18 +88,17 @@ app.use('/api/gap', gapRoutes);
 app.use('/api/pathway', pathwayRoutes);
 app.use('/api/courses', courseRoutes);
 
-// Serve React frontend in production
-if (env.NODE_ENV === 'production') {
-  const frontendDist = path.join(__dirname, '../../frontend/dist');
-  app.use(express.static(frontendDist));
-  // SPA catch-all: serve index.html for non-API routes
-  app.get(/^(?!\/api).*/, (_req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
-  });
-}
+// Serve React frontend build (works in both dev and production)
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDist));
 
-// 404 for unmatched API routes
-app.use((_req, res) => {
+// SPA catch-all: any non-/api route serves index.html so React Router works
+app.get(/^(?!\/api).*/, (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
+// 404 only for unmatched /api routes
+app.use('/api', (_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
 
