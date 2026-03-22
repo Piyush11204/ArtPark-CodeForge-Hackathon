@@ -3,6 +3,8 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /frontend
 COPY frontend/package*.json ./
+# Copy .npmrc so npm ci respects legacy-peer-deps setting
+COPY frontend/.npmrc* ./
 RUN npm ci
 COPY frontend .
 RUN npm run build

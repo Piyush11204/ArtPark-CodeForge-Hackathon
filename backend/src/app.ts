@@ -98,10 +98,33 @@ const frontendDist = process.env.FRONTEND_DIST_PATH
   ? path.resolve(process.env.FRONTEND_DIST_PATH)
   : path.join(__dirname, '../../frontend/dist');
 
-app.use(express.static(frontendDist));
+app.use(
+  express.static(frontendDist, {
+    setHeaders(res, filePath) {
+      // Correct MIME type for Web App Manifest (.webmanifest)
+      if (filePath.endsWith('.webmanifest')) {
+        res.setHeader('Content-Type', 'application/manifest+json');
+      }
+      // Service worker must never be cached — browsers must always fetch fresh
+      if (filePath.endsWith('sw.js') || /workbox-[^/]+\.js$/.test(filePath) || filePath.endsWith('registerSW.js')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+        res.setHeader('Service-Worker-Allowed', '/');
+      }
+    },
+  })
+);
 
-// SPA catch-all: any non-/api route serves index.html so React Router works
-app.get(/^(?!\/api).*/, (_req, res) => {
+// SPA catch-all: serve index.html for navigation requests only.
+// Paths with a file extension (e.g. .js, .css, .png, .webmanifest) are NOT
+// served as index.html — if express.static didn't find them, return 404.
+// This prevents the browser receiving HTML with the wrong MIME type for
+// missing static assets (e.g. registerSW.js, manifest.webmanifest).
+app.get(/^(?!\/api)/, (req, res) => {
+  if (path.extname(req.path)) {
+    // Known static file that doesn't exist in dist — proper 404
+    res.status(404).send('Not found');
+    return;
+  }
   res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
