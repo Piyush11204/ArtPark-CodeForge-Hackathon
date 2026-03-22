@@ -15,5 +15,8 @@ export declare const env: {
     ML_SERVICE_URL: string;
     FRONTEND_URL: string;
     MAX_FILE_SIZE_MB: number;
+    OPENAI_API_KEY: string;
+    OPENAI_MODEL: string;
+    CHAT_MAX_HISTORY: number;
 };
 //# sourceMappingURL=env.d.ts.map

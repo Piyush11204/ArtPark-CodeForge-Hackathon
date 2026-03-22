@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const adminController_1 = require("../controllers/adminController");
+const router = (0, express_1.Router)();
+router.use(auth_1.protect, (0, auth_1.requireRole)('admin'));
+router.get('/stats', adminController_1.getStats);
+router.get('/users', adminController_1.getUsers);
+router.get('/users/:id', adminController_1.getUserById);
+router.patch('/users/:id', adminController_1.updateUser);
+router.delete('/users/:id', adminController_1.deleteUser);
+router.get('/jobs', adminController_1.getAllJobs);
+router.post('/jobs', adminController_1.createJob);
+router.patch('/jobs/:id', adminController_1.updateJob);
+router.delete('/jobs/:id', adminController_1.deleteJob);
+router.patch('/jobs/:id/toggle', adminController_1.toggleJobActive);
+router.get('/courses', adminController_1.getAllCourses);
+router.post('/courses', adminController_1.createCourse);
+router.patch('/courses/:id', adminController_1.updateCourse);
+router.delete('/courses/:id', adminController_1.deleteCourse);
+router.patch('/courses/:id/toggle', adminController_1.toggleCourseActive);
+exports.default = router;
+//# sourceMappingURL=adminRoutes.js.map

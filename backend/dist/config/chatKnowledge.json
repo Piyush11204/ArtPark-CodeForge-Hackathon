@@ -1,0 +1,248 @@
+{
+    "meta": {
+        "version": "1.0.0",
+        "description": "AdaptLearn NLP chatbot knowledge base — intent patterns, response templates, FAQ, small talk",
+        "note": "keywords = individual tokens (lowercase). phrases = multi-word substrings (lowercase). Scoring: phrase match = 3pt, keyword match = 1pt."
+    },
+    "intents": [
+        {
+            "tag": "greeting",
+            "keywords": ["hi", "hello", "hey", "howdy", "hiya", "greetings", "yo", "sup"],
+            "phrases": ["good morning", "good afternoon", "good evening", "how are you", "what's up", "nice to meet", "great to meet", "how do you do"],
+            "weight": 1.0
+        },
+        {
+            "tag": "farewell",
+            "keywords": ["bye", "goodbye", "cya", "later", "farewell", "exit", "quit", "done", "finish"],
+            "phrases": ["see you", "talk later", "good night", "take care", "that's all", "i'm done", "no more questions", "have a good day"],
+            "weight": 1.0
+        },
+        {
+            "tag": "thanks",
+            "keywords": ["thanks", "thank", "thx", "appreciate", "helpful", "perfect", "excellent", "wonderful", "great", "awesome", "cool", "nice"],
+            "phrases": ["thank you", "thanks a lot", "very helpful", "appreciate it", "that's great", "that helps", "got it", "makes sense", "understood"],
+            "weight": 0.8
+        },
+        {
+            "tag": "query_skills",
+            "keywords": ["skills", "skill", "abilities", "capability", "expertise", "stack", "technologies", "techs", "proficiency", "competency", "competencies"],
+            "phrases": ["my skills", "what skills", "list skills", "tech stack", "my tech", "what do i know", "what can i do", "technologies i know", "skills i have", "resume skills", "my expertise", "my abilities", "my capabilities", "show my skills", "view skills"],
+            "weight": 1.2
+        },
+        {
+            "tag": "query_gaps",
+            "keywords": ["gap", "gaps", "missing", "lack", "lacking", "deficit", "deficiency", "required", "requirements", "need", "needs", "difference"],
+            "phrases": ["skill gap", "skill gaps", "what am i missing", "what skills do i need", "missing skills", "skills i lack", "skills i need", "gap analysis", "gap report", "what's missing", "not meeting", "don't have", "requirements for", "skills required", "how far am i", "am i ready"],
+            "weight": 1.3
+        },
+        {
+            "tag": "query_pathway",
+            "keywords": ["pathway", "roadmap", "path", "plan", "steps", "schedule", "curriculum", "sequence", "order", "recommended"],
+            "phrases": ["what should i learn", "what to study", "learning path", "learning plan", "learning roadmap", "study plan", "study path", "my pathway", "my roadmap", "my plan", "next in my", "what next", "what should i do next", "how to proceed", "show pathway", "view pathway", "generate pathway"],
+            "weight": 1.3
+        },
+        {
+            "tag": "query_progress",
+            "keywords": ["progress", "completion", "completed", "done", "finished", "achievements", "accomplishments", "milestone"],
+            "phrases": ["my progress", "how far", "how much done", "how many completed", "what have i done", "what have i completed", "how far along", "learning progress", "pathway progress", "percent done", "percent complete", "steps completed", "how many steps"],
+            "weight": 1.2
+        },
+        {
+            "tag": "query_jobs",
+            "keywords": ["job", "jobs", "position", "positions", "role", "roles", "vacancy", "vacancies", "opening", "openings", "listing", "listings", "opportunity", "opportunities", "employer"],
+            "phrases": ["jobs for me", "job match", "jobs that match", "suitable jobs", "jobs i can apply", "apply for jobs", "job recommendations", "recommend jobs", "find jobs", "job listings", "view jobs", "browse jobs", "available jobs", "how many jobs", "total jobs"],
+            "weight": 1.2
+        },
+        {
+            "tag": "query_courses",
+            "keywords": ["course", "courses", "tutorial", "tutorials", "lesson", "lessons", "resource", "resources", "learn", "study", "training", "material", "materials", "udemy", "coursera", "edx", "youtube", "book", "books"],
+            "phrases": ["recommend a course", "course recommendations", "what course", "best course", "online course", "online learning", "learning resources", "study materials", "how to learn", "courses for", "tutorials for", "learn python", "learn react", "learn javascript", "learn docker", "learn sql", "learn kubernetes"],
+            "weight": 1.2
+        },
+        {
+            "tag": "query_matchscore",
+            "keywords": ["score", "percentage", "percent", "compatible", "compatibility", "fit", "suitable", "suitable", "match"],
+            "phrases": ["match score", "my score", "compatibility score", "how well do i match", "how compatible", "am i a good fit", "how suited", "how good am i", "percentage match", "job fit score", "fit for the job", "how do i rank", "how do i compare"],
+            "weight": 1.2
+        },
+        {
+            "tag": "platform_help",
+            "keywords": ["help", "guide", "tutorial", "how", "explain", "instructions", "setup", "configure", "start", "begin", "use", "using", "navigate", "navigation", "feature", "features"],
+            "phrases": ["how to use", "how does", "what is", "what are", "how do i", "getting started", "get started", "how to get started", "what is adaptlearn", "how to upload", "how to analyze", "how to generate", "how do i use", "platform guide", "platform help", "tell me about", "explain the"],
+            "weight": 1.0
+        },
+        {
+            "tag": "career_advice",
+            "keywords": ["career", "interview", "resume", "salary", "negotiation", "promotion", "switch", "transition", "advice", "tips", "suggest", "suggestions", "recommendation", "guidance", "industry", "field"],
+            "phrases": ["career advice", "career switch", "career change", "career path", "career tips", "job interview", "interview tips", "interview prep", "resume tips", "salary advice", "salary negotiation", "how to become", "how to get into", "switch to", "transition to", "break into", "software engineer", "data scientist", "machine learning engineer", "front end developer", "back end developer", "full stack", "devops engineer"],
+            "weight": 1.1
+        },
+        {
+            "tag": "query_salary",
+            "keywords": ["salary", "pay", "wage", "compensation", "income", "earning", "ctc", "package", "offer"],
+            "phrases": ["how much does", "average salary", "salary range", "salary for", "pay scale", "expected salary", "market rate", "how much do developers make", "how much do engineers make", "salary data", "compensation package"],
+            "weight": 1.2
+        },
+        {
+            "tag": "continuation",
+            "keywords": ["more", "elaborate", "details", "detail", "explain", "expand", "further", "continue", "another", "else"],
+            "phrases": ["tell me more", "can you explain", "give me more", "more details", "what else", "say more", "expand on that", "elaborate on", "go on", "continue please", "what do you mean", "more about", "in detail", "with details"],
+            "weight": 0.9
+        },
+        {
+            "tag": "negative_sentiment",
+            "keywords": ["frustrated", "confused", "stuck", "lost", "overwhelmed", "difficult", "hard", "struggling", "help"],
+            "phrases": ["i'm confused", "i'm stuck", "i don't understand", "this is hard", "i'm struggling", "i'm overwhelmed", "don't know where", "not sure where", "i'm lost", "help me", "i need help", "this is confusing", "so difficult"],
+            "weight": 1.0
+        }
+    ],
+    "faq": [
+        {
+            "id": "upload_resume",
+            "keywords": ["upload", "resume", "cv", "add", "submit"],
+            "phrases": ["how to upload", "upload my resume", "upload a resume", "add my resume", "submit resume", "where to upload", "how do i upload my resume"],
+            "answer": "To upload your resume:\n1. Click **Get Started** in the navigation bar\n2. On the **Upload Resume** step, click the upload zone or drag & drop your PDF\n3. File must be PDF format, max **5MB**\n\nThe AI will automatically extract all your skills — it usually takes about 10–15 seconds."
+        },
+        {
+            "id": "gap_analysis_explained",
+            "keywords": ["gap", "analysis", "works", "mean", "explained"],
+            "phrases": ["how does gap analysis work", "what is gap analysis", "explain gap analysis", "what does gap mean", "gap analysis explained", "how gap analysis"],
+            "answer": "**Gap Analysis** compares your skills (extracted from your resume) against the requirements of a target job.\n\nIt produces:\n• **Missing skills** — skills the job needs that you don't have yet\n• **Partial skills** — skills you have but need to strengthen\n• **Satisfied skills** — skills you already have that match the job\n• **Match Score** — your overall fit percentage (0–100%)\n\nA higher match score means you're a stronger candidate for that role."
+        },
+        {
+            "id": "pathway_explained",
+            "keywords": ["pathway", "learning", "generated", "steps", "works"],
+            "phrases": ["what is a pathway", "how does pathway work", "what is a learning pathway", "how is pathway generated", "explain pathway", "pathway explained"],
+            "answer": "A **Learning Pathway** is a personalised, prioritised sequence of skills to learn — generated from your Gap Analysis.\n\nEach step includes:\n• The **skill** to learn\n• The **priority** (critical / recommended / optional)\n• A linked course from our course library\n• Estimated hours to complete\n\nSteps are ordered to maximise your match score improvement fastest."
+        },
+        {
+            "id": "onboarding_flow",
+            "keywords": ["onboarding", "started", "start", "begin", "first", "steps"],
+            "phrases": ["how to get started", "getting started", "onboarding steps", "how do i start", "what are the steps", "walk me through", "how does onboarding work", "onboarding flow"],
+            "answer": "Here's how to get started with AdaptLearn in **4 steps**:\n\n1. **Upload Resume** → Go to *Get Started* and upload your PDF resume\n2. **Pick a Job** → Browse jobs and select your target role\n3. **Gap Analysis** → See which skills you're missing for that job\n4. **Generate Pathway** → Get your personalised learning plan\n\nEach step builds on the previous one!"
+        },
+        {
+            "id": "match_score_improve",
+            "keywords": ["improve", "increase", "boost", "raise", "higher", "better", "score"],
+            "phrases": ["how to improve match score", "improve my score", "increase match score", "boost match score", "how to get higher score", "how to improve compatibility", "what improves score"],
+            "answer": "To **improve your match score**:\n\n1. **Focus on critical skills** first — these have the biggest impact\n2. **Complete pathway steps** — each skill learned increases your score\n3. **Update your resume** after gaining new skills — re-run gap analysis\n4. **Target partial skills** — strengthening partial matches also boosts your score\n\nConsistently completing pathway steps is the fastest way to increase your match percentage."
+        },
+        {
+            "id": "resume_tips",
+            "keywords": ["resume", "cv", "write", "create", "optimize", "format", "improve"],
+            "phrases": ["resume tips", "how to write a resume", "improve my resume", "make a better resume", "resume format", "resume advice", "cv tips", "what to put on resume"],
+            "answer": "**Resume Tips for Tech Roles:**\n\n• **Keep it to 1–2 pages** — concise and focused\n• **List specific technologies** — Python, React, AWS etc. (not just 'programming')\n• **Quantify achievements** — 'Reduced load time by 40%' beats 'improved performance'\n• **Include projects** — personal or open source projects count\n• **Match job keywords** — use the same terms the job posting uses\n• **PDF format** — always submit as PDF to preserve formatting"
+        },
+        {
+            "id": "interview_prep",
+            "keywords": ["interview", "prepare", "preparation", "practice", "ready"],
+            "phrases": ["interview tips", "how to prepare for interview", "interview preparation", "prepare for interview", "interview practice", "interview advice", "get ready for interview", "technical interview"],
+            "answer": "**Interview Preparation Guide:**\n\n**Technical:**\n• Practice LeetCode / HackerRank (easy → medium)\n• Review data structures: arrays, hashmaps, trees, graphs\n• Practice system design for senior roles\n\n**Soft Skills:**\n• Use the **STAR method** for behavioural questions (Situation, Task, Action, Result)\n• Research the company before the interview\n• Prepare 2–3 questions to ask the interviewer\n\n**For coding rounds:** Think out loud — explain your approach before coding"
+        },
+        {
+            "id": "salary_ranges",
+            "keywords": ["salary", "pay", "compensation", "earnings", "income"],
+            "phrases": ["salary ranges", "average salaries", "how much do developers make", "developer salaries", "engineer salary", "what salary should", "typical salary"],
+            "answer": "**Typical Tech Salaries (USD, varies by location & experience):**\n\n| Role | Entry | Mid | Senior |\n|---|---|---|---|\n| Frontend Dev | $60K | $90K | $130K+ |\n| Backend Dev | $65K | $95K | $140K+ |\n| Full Stack | $70K | $100K | $145K+ |\n| Data Scientist | $75K | $110K | $155K+ |\n| ML Engineer | $85K | $120K | $165K+ |\n| DevOps / SRE | $75K | $110K | $150K+ |\n\n*Note: These are US market averages. Rates vary significantly by city and company.*"
+        },
+        {
+            "id": "career_switch",
+            "keywords": ["switch", "change", "transition", "move", "pivot", "break"],
+            "phrases": ["career switch", "career change", "career transition", "switch careers", "change careers", "break into tech", "get into tech", "switch to software", "become a developer", "become an engineer", "switch to data science", "switch to ml", "switch to devops"],
+            "answer": "**How to Switch Careers into Tech:**\n\n1. **Identify your target role** — frontend, backend, data, ML, DevOps?\n2. **Build foundation skills** — 3–6 months of focused learning\n3. **Build a portfolio** — 2–3 real projects on GitHub\n4. **Network** — LinkedIn, local meetups, open source contributions\n5. **Apply broadly** — especially to companies with structured new-grad/career-changer programs\n\n**Use AdaptLearn's gap analysis** — pick a job and see exactly what skills you need!"
+        },
+        {
+            "id": "what_is_adaptlearn",
+            "keywords": ["adaptlearn", "platform", "app", "application", "product", "tool"],
+            "phrases": ["what is adaptlearn", "what does adaptlearn do", "tell me about adaptlearn", "what is this platform", "about adaptlearn", "how does adaptlearn work"],
+            "answer": "**AdaptLearn** is an AI-powered career coaching platform that helps you bridge the gap between your current skills and your dream job.\n\n**Core features:**\n• 🤖 **AI Resume Parsing** — extract skills from your CV automatically\n• 📊 **Gap Analysis** — compare your skills to any job's requirements\n• 🛤️ **Adaptive Pathway** — personalised learning plan ranked by priority\n• 💼 **Job Board** — curated job listings with skill matching\n• 📚 **Course Library** — courses mapped to every skill gap\n• 🤝 **AI Coach** — that's me! Ask anything career-related"
+        },
+        {
+            "id": "python_roadmap",
+            "keywords": ["python", "roadmap"],
+            "phrases": ["learn python", "python roadmap", "how to learn python", "python learning path", "start with python", "python for beginners", "get started with python"],
+            "answer": "**Python Learning Roadmap:**\n\n**Beginner (1–2 months):**\n• Variables, data types, control flow\n• Functions, modules, file I/O\n• Lists, dicts, sets, tuples\n\n**Intermediate (2–3 months):**\n• OOP — classes, inheritance\n• Error handling, decorators\n• `requests`, `json`, `csv` libraries\n\n**Specialise:**\n• **Web** → FastAPI or Django\n• **Data** → NumPy, Pandas, Matplotlib\n• **ML** → scikit-learn, PyTorch\n• **Automation** → Selenium, BeautifulSoup\n\n*Recommended: Python Crash Course (book) + freeCodeCamp Python course*"
+        },
+        {
+            "id": "javascript_roadmap",
+            "keywords": ["javascript", "js"],
+            "phrases": ["learn javascript", "javascript roadmap", "how to learn javascript", "js roadmap", "start with javascript", "javascript for beginners", "get started with js"],
+            "answer": "**JavaScript Learning Roadmap:**\n\n**Beginner (1–2 months):**\n• Variables, functions, arrays, objects\n• DOM manipulation, event handling\n• Async JS — callbacks, Promises, async/await\n\n**Intermediate (2–3 months):**\n• ES6+ features (arrow functions, destructuring, modules)\n• Fetch API, JSON handling\n• npm ecosystem\n\n**Frameworks (pick one):**\n• **React** — most in-demand, component-based UI\n• **Vue** — gentler learning curve\n• **Angular** — TypeScript-first, enterprise-friendly\n\n*Start with The Odin Project (free) or javascript.info*"
+        },
+        {
+            "id": "react_roadmap",
+            "keywords": ["react", "reactjs"],
+            "phrases": ["learn react", "react roadmap", "how to learn react", "react for beginners", "getting started with react", "react learning path"],
+            "answer": "**React Learning Roadmap:**\n\n**Prerequisites:** HTML, CSS, JavaScript fundamentals\n\n**Core React (2–3 months):**\n• JSX, components, props, state\n• `useEffect`, `useState`, `useRef`, `useContext`\n• React Router for navigation\n• Fetching data with Axios / Fetch\n\n**Advanced (2–3 months):**\n• State management — Zustand or Redux Toolkit\n• Performance — `useMemo`, `useCallback`, `React.memo`\n• Testing — React Testing Library + Jest\n• TypeScript with React\n\n*Best resource: Official React docs (react.dev) — they're excellent!*"
+        },
+        {
+            "id": "docker_roadmap",
+            "keywords": ["docker", "containerization", "containers"],
+            "phrases": ["learn docker", "docker roadmap", "how to learn docker", "docker for beginners", "getting started with docker", "docker basics", "containerization"],
+            "answer": "**Docker Learning Roadmap:**\n\n**Basics (1 month):**\n• What is containerization?\n• `docker run`, `pull`, `ps`, `exec`, `logs`\n• Writing a `Dockerfile`\n• Docker volumes and networks\n\n**Intermediate:**\n• `docker-compose` for multi-container apps\n• Container registries (Docker Hub, ECR, GCR)\n• Multi-stage builds for smaller images\n\n**Advanced:**\n• Kubernetes (orchestration at scale)\n• Docker security best practices\n• CI/CD with Docker\n\n*Free resource: Play with Docker (labs.play-with-docker.com)*"
+        },
+        {
+            "id": "consistency_tips",
+            "keywords": ["consistent", "consistency", "motivate", "motivation", "habit", "daily", "routine", "productive", "productivity", "time"],
+            "phrases": ["how to stay consistent", "stay motivated", "learning habit", "daily routine", "how to be productive", "time management", "study tips", "how long to learn", "how much time"],
+            "answer": "**Staying Consistent with Learning:**\n\n• **2 hours/day beats 14-hour weekend** — consistency > intensity\n• **The 25-min Pomodoro** — 25min study, 5min break, repeat\n• **Block calendar time** — treat study time like a meeting\n• **Track progress** — your AdaptLearn pathway shows your progress!\n• **Build → Learn → Build** — apply skills immediately in projects\n• **Find a study buddy** — accountability multiplies consistency\n\n*For most career switchers: 6–9 months of consistent learning leads to job-readiness.*"
+        }
+    ],
+    "smallTalk": [
+        {
+            "triggers": ["what is your name", "who are you", "what are you called", "your name"],
+            "response": "I'm **AdaptLearn Assistant** — your AI career coach embedded in the platform! I help you make sense of your skill gaps, navigate your learning pathway, and answer career questions. 🤖"
+        },
+        {
+            "triggers": ["are you human", "are you a bot", "are you ai", "are you an ai", "is this ai", "am i talking to a bot"],
+            "response": "I'm an AI assistant — no human on the other end here! 🤖 But I'm trained specifically for career coaching and have full access to your AdaptLearn profile data to give you personalised advice."
+        },
+        {
+            "triggers": ["what can you do", "what do you know", "your capabilities", "help me with", "what can you help"],
+            "response": "Here's what I can help with:\n\n• 📋 **Your skills** — what's on your resume\n• 🔍 **Skill gaps** — what you're missing for your target job\n• 🛤️ **Learning pathway** — what to study next and in what order\n• 📈 **Progress** — how far along your learning plan you are\n• 💼 **Jobs** — which jobs match your current skill set\n• 📚 **Courses** — recommendations based on your gaps\n• 🎯 **Career advice** — interview tips, resume writing, career switching\n• ❓ **Platform help** — how to use any AdaptLearn feature\n\nJust ask away!"
+        },
+        {
+            "triggers": ["joke", "funny", "make me laugh", "cheer me up", "tell me a joke"],
+            "response": "Why do programmers prefer dark mode?\n\nBecause light attracts bugs! 🐛😄\n\n…okay, back to your learning journey. What can I help you with?"
+        },
+        {
+            "triggers": ["i'm tired", "i'm exhausted", "feeling tired", "need a break", "burnt out", "burnout"],
+            "response": "It sounds like you need a break — and that's totally okay! 😊\n\nBurnout is real. Take a rest, go for a walk, sleep well.\n\nRemember: **rest is part of the process**. Consistent learning with proper breaks beats pushing through exhaustion every time. You'll come back sharper. 💪"
+        },
+        {
+            "triggers": ["motivate me", "i'm not motivated", "lost motivation", "feeling demotivated", "give me motivation"],
+            "response": "Let me share something:\n\n**Every expert was once a beginner.** The developers you admire didn't wake up knowing this stuff — they showed up every day, made mistakes, and kept going.\n\nYou're here, using a platform to close your skill gaps systematically — that already puts you ahead of most people. 🚀\n\nCheck your pathway progress — even one completed step is real evidence you're moving forward. What's the next skill you want to tackle?"
+        }
+    ],
+    "responses": {
+        "greeting_with_profile": "Hey {{firstName}}! 👋 Good to see you.\n\nQuick snapshot: you're at **{{matchScore}}%** match{{jobLine}} and your learning pathway is **{{pathwayProgress}}%** complete.\n\nWhat can I help you with today?",
+        "greeting_no_gaps": "Hello {{firstName}}! 👋 Welcome back.\n\nYou have **{{skillCount}} skills** on your resume but no gap analysis yet. Pick a target job and I'll show you exactly what skills you need!\n\nWhat's on your mind?",
+        "greeting_fresh": "Hello! 👋 I'm AdaptLearn Assistant, your AI career coach.\n\nI can help you understand skill gaps, plan your learning journey, and give career advice — all personalised to your profile.\n\nWhat would you like to explore?",
+        "thanks": "Glad I could help! 😊 Let me know if you have more questions.",
+        "thanks_with_context": "Happy to help, {{firstName}}! You're making great progress. Anything else on your mind?",
+        "farewell_with_profile": "Goodbye {{firstName}}! 👋 Keep learning — every skill you add brings you closer to landing that role. Come back anytime. Good luck! 🚀",
+        "farewell_generic": "Goodbye! 👋 Keep pushing forward. Come back anytime you need guidance. 🚀",
+        "no_resume_prompt": "You haven't uploaded a resume yet, {{firstName}}. Head to **Get Started → Upload Resume** to let me analyze your skills — it only takes a minute!",
+        "no_gap_prompt": "No gap analysis done yet. Go to **Get Started → Pick a Job** to select a target role, then I'll compute exactly which skills you're missing!",
+        "no_pathway_prompt": "No learning pathway generated yet. Complete the gap analysis first, then click **Generate Pathway** to get your personalised learning plan.",
+        "skills_found": "Based on your latest resume, you have **{{skillCount}} skills**:\n\n{{skillsList}}{{moreText}}\n\n{{matchLine}}",
+        "skills_none_extracted": "Your resume was uploaded but no skills were extracted. Try re-uploading a more detailed resume that lists specific technologies.",
+        "gaps_report": "Here's your skill gap breakdown{{jobLine}}:\n\n📊 **Match Score:** {{matchScore}}%\n\n❌ **Missing ({{missingCount}}):** {{missingList}}\n\n⚠️ **Partial ({{partialCount}}):** {{partialList}}\n\n✅ **Satisfied ({{satisfiedCount}}):** {{satisfiedList}}\n\n{{pathwayLine}}",
+        "gaps_high_match": "Great news{{firstName}}! You're at **{{matchScore}}%** match{{jobLine}} — you're quite close!\n\n⚠️ The few skills still missing: {{missingList}}\n\nFocus on those and you'll be ready to apply!",
+        "gaps_perfect": "🎉 Impressive! You satisfy **100%** of the requirements{{jobLine}}. You're ready to apply — go for it!",
+        "pathway_found": "Your learning pathway{{jobLine}} is **{{pathwayProgress}}%** complete:\n\n{{stepsList}}\n\n{{nextLine}}",
+        "pathway_done": "🎉 You've completed all {{totalSteps}} steps in your pathway! Time to apply for that job. Your match score is now at its maximum.",
+        "pathway_next": "**Next up:** Learn **{{nextSkill}}** ({{nextPriority}} priority). This will directly boost your match score.",
+        "progress_report": "**Your Learning Progress:**\n\n✅ Completed: **{{completedSteps}} / {{totalSteps}} steps** ({{pathwayProgress}}%)\n\n{{nextLine}}\n\n{{encouragement}}",
+        "jobs_with_skills": "Based on your **{{skillCount}} skills** (including {{topSkills}}…), there are **{{totalJobs}} active jobs** on the platform.\n\nHead to the **Jobs** page to browse and filter. Your current match for {{jobTitle}} is **{{matchScore}}%**.\n\nRun gap analysis on different jobs to find your best fit!",
+        "jobs_no_skills": "Head to the **Jobs** page to browse all {{totalJobs}} active listings. Upload your resume first so I can tell you which jobs you're best qualified for!",
+        "courses_with_gaps": "Based on your skill gaps, I recommend focusing on:\n\n{{missingList}}\n\nThere are **{{totalCourses}} courses** in the library covering all these. Open the **Pathway** page — each step already links to the best course for that skill!",
+        "courses_no_gaps": "There are **{{totalCourses}} curated courses** on the platform covering languages, frameworks, databases, cloud, and more.\n\nRun a **Gap Analysis** first — I'll then know exactly which courses to recommend based on your target role's requirements.",
+        "matchscore_report": "{{firstName}}, your current match score{{jobLine}} is **{{matchScore}}%**.\n\nTo boost it:\n• Learn missing skills marked as **critical** in your pathway\n• Each completed skill increases your score\n• Re-upload your resume after gaining new skills\n\n{{nextLine}}",
+        "continuation_prompt": "Sure — what specific part would you like me to expand on?\n\n• **Your skills** — full skills list\n• **Missing skills** — detailed gap breakdown\n• **Pathway steps** — full learning plan\n• **Career advice** — specific guidance",
+        "negative_support": "I hear you — this can feel overwhelming at times. 😊\n\nLet me break it down simply:\n\n1. **Right now:** You have {{skillCount}} skills on your resume\n2. **Your goal:** {{jobTitle}}{{company}}\n3. **The gap:** {{missingCount}} skills to learn\n4. **Your plan:** Follow the pathway, one step at a time\n\nYou don't have to figure it all out today. What's one thing I can help clarify?",
+        "salary_context": "Salary ranges vary a lot by location, company size, and experience level. In general:\n\n• **Entry-level dev:** $55K–$80K (US)\n• **Mid-level:** $85K–$120K\n• **Senior:** $120K–$160K+\n\nFor your target role{{jobLine}}, check job postings directly — many now show salary bands. Use LinkedIn Salary or Glassdoor for benchmarks in your city.",
+        "general_fallback": "That's an interesting question, {{firstName}}! I specialise in career coaching and everything about your AdaptLearn profile. Here are things I can help with:\n\n• **\"What are my skill gaps?\"**\n• **\"What should I learn next?\"**\n• **\"How do I prepare for interviews?\"**\n• **\"Show my pathway progress\"**\n\nWhat would you like to explore?",
+        "general_fallback_no_name": "I'm not sure I fully understood that. I specialise in career coaching — try asking:\n\n• **\"What skills am I missing?\"**\n• **\"What should I learn next?\"**\n• **\"How to improve my match score?\"**\n• **\"Career advice for switching to ML\""
+    }
+}

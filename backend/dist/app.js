@@ -17,6 +17,8 @@ const resumeRoutes_1 = __importDefault(require("./routes/resumeRoutes"));
 const gapRoutes_1 = __importDefault(require("./routes/gapRoutes"));
 const pathwayRoutes_1 = __importDefault(require("./routes/pathwayRoutes"));
 const courseRoutes_1 = __importDefault(require("./routes/courseRoutes"));
+const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
+const chatRoutes_1 = __importDefault(require("./routes/chatRoutes"));
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: false,
@@ -73,11 +75,27 @@ app.use('/api/resume', resumeRoutes_1.default);
 app.use('/api/gap', gapRoutes_1.default);
 app.use('/api/pathway', pathwayRoutes_1.default);
 app.use('/api/courses', courseRoutes_1.default);
+app.use('/api/admin', adminRoutes_1.default);
+app.use('/api/chat', chatRoutes_1.default);
 const frontendDist = process.env.FRONTEND_DIST_PATH
     ? path_1.default.resolve(process.env.FRONTEND_DIST_PATH)
     : path_1.default.join(__dirname, '../../frontend/dist');
-app.use(express_1.default.static(frontendDist));
-app.get(/^(?!\/api).*/, (_req, res) => {
+app.use(express_1.default.static(frontendDist, {
+    setHeaders(res, filePath) {
+        if (filePath.endsWith('.webmanifest')) {
+            res.setHeader('Content-Type', 'application/manifest+json');
+        }
+        if (filePath.endsWith('sw.js') || /workbox-[^/]+\.js$/.test(filePath) || filePath.endsWith('registerSW.js')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+            res.setHeader('Service-Worker-Allowed', '/');
+        }
+    },
+}));
+app.get(/^(?!\/api)/, (req, res) => {
+    if (path_1.default.extname(req.path)) {
+        res.status(404).send('Not found');
+        return;
+    }
     res.sendFile(path_1.default.join(frontendDist, 'index.html'));
 });
 app.use('/api', (_req, res) => {
