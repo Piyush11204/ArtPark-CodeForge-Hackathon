@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -12,14 +13,33 @@ import resumeRoutes from './routes/resumeRoutes';
 import gapRoutes from './routes/gapRoutes';
 import pathwayRoutes from './routes/pathwayRoutes';
 import courseRoutes from './routes/courseRoutes';
+import adminRoutes from './routes/adminRoutes';
+import chatRoutes from './routes/chatRoutes';
 
 const app = express();
 
 // Security
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Allow Vite-built assets to load
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(
   cors({
-    origin: [env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, same-origin)
+      if (!origin) return callback(null, true);
+      const allowed = [
+        env.FRONTEND_URL,
+        'http://localhost:5173',
+        'http://localhost:3000',
+      ].filter(Boolean);
+      if (allowed.includes(origin)) return callback(null, true);
+      // In production, also allow same-origin Render deployments
+      if (env.NODE_ENV === 'production') return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -69,9 +89,24 @@ app.use('/api/resume', resumeRoutes);
 app.use('/api/gap', gapRoutes);
 app.use('/api/pathway', pathwayRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
-// 404
-app.use((_req, res) => {
+// Serve React frontend build (works in both dev and production)
+// FRONTEND_DIST_PATH env var overrides the default (useful for Docker builds)
+const frontendDist = process.env.FRONTEND_DIST_PATH
+  ? path.resolve(process.env.FRONTEND_DIST_PATH)
+  : path.join(__dirname, '../../frontend/dist');
+
+app.use(express.static(frontendDist));
+
+// SPA catch-all: any non-/api route serves index.html so React Router works
+app.get(/^(?!\/api).*/, (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
+// 404 only for unmatched /api routes
+app.use('/api', (_req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
 

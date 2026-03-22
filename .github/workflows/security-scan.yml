@@ -1,0 +1,124 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Security Scan — CodeQL static analysis + dependency audit
+# Triggers: push to main/develop, weekly schedule, PRs
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: Security Scan
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Every Monday at 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # CodeQL — JavaScript / TypeScript analysis
+  # ─────────────────────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # npm audit — frontend & backend
+  # ─────────────────────────────────────────────────────────────────────────
+  npm-audit:
+    name: npm Dependency Audit
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        dir: [frontend, backend]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (${{ matrix.dir }})
+        working-directory: ${{ matrix.dir }}
+        run: npm ci
+
+      - name: Audit (${{ matrix.dir }})
+        working-directory: ${{ matrix.dir }}
+        # Fail on high/critical only; moderate is warning
+        run: npm audit --audit-level=high
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # pip-audit — Python ML service
+  # ─────────────────────────────────────────────────────────────────────────
+  pip-audit:
+    name: Python Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: ml-service/requirements.txt
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Audit ml-service dependencies
+        working-directory: ml-service
+        run: pip-audit -r requirements.txt --progress-spinner off
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Secret scanning reminder (Gitleaks)
+  # ─────────────────────────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan (Gitleaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

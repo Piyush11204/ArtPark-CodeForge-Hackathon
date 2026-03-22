@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authService } from '../services/authService';
-import { Brain, LayoutDashboard, Briefcase, LogOut, Menu, X, UserCircle, Info, Mail } from 'lucide-react';
+import { Brain, LayoutDashboard, Briefcase, LogOut, Menu, X, UserCircle, Info, Mail, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Navbar() {
@@ -56,6 +56,7 @@ export default function Navbar() {
               {navLink('/jobs', 'Jobs', Briefcase)}
               {navLink('/onboard', 'Get Started', Brain)}
               {navLink('/profile', 'Profile', UserCircle)}
+              {user?.role === 'admin' && navLink('/admin', 'Admin', ShieldCheck)}
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-white/10 transition-colors ml-1"
@@ -94,6 +95,7 @@ export default function Navbar() {
               {navLink('/jobs', 'Jobs', Briefcase)}
               {navLink('/onboard', 'Get Started', Brain)}
               {navLink('/profile', 'Profile', UserCircle)}
+              {user?.role === 'admin' && navLink('/admin', 'Admin', ShieldCheck)}
               <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-white transition-colors">
                 <LogOut size={16} /> Logout
               </button>

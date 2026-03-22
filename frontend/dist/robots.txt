@@ -1,0 +1,43 @@
+# robots.txt — AdaptLearn
+# https://hireready-9lkl.onrender.com/robots.txt
+
+User-agent: *
+Allow: /
+Allow: /jobs
+Allow: /about
+Allow: /contact
+
+# Disallow authenticated / private routes
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /pathway/
+Disallow: /onboard/
+Disallow: /admin/
+Disallow: /api/
+
+# Crawl-delay guidance (optional, respected by some bots)
+Crawl-delay: 10
+
+# Sitemap location
+Sitemap: https://hireready-9lkl.onrender.com/sitemap.xml
+
+# ── Bot-specific rules ────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 10
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /

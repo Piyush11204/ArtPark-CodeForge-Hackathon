@@ -36,3 +36,12 @@ body {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #1e293b; }
 ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+
+/* Chat widget slide-up animation */
+@keyframes chat-slide-up {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-in {
+  animation: chat-slide-up 0.2s ease-out forwards;
+}

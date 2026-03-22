@@ -1,5 +1,6 @@
 import Navbar from './Navbar';
 import Footer from './Footer';
+import ChatWidget from './ChatWidget';
 import { Outlet, useLocation } from 'react-router-dom';
 
 const AUTH_ROUTES = ['/login', '/register'];
@@ -18,6 +19,7 @@ export default function Layout() {
         <Outlet />
       </main>
       {!hideFooter && <Footer />}
+      <ChatWidget />
     </div>
   );
 }

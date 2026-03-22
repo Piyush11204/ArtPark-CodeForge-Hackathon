@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files — NEVER commit real secrets
+.env
+.env.local
+.env.production
+.env.*.local
+backend/.env
+ml-service/.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+ml-service/.venv/
+ml-service/venv/
+ml-service/__pycache__/
+
+# Uploads (local dev only)
+uploads/
