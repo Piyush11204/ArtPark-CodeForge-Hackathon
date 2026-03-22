@@ -9,8 +9,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        // target: 'https://hireready-9lkl.onrender.com',
-        target: 'http://localhost:5000',
+        target: 'https://hireready-9lkl.onrender.com',
+        // target: 'http://localhost:5000',
         changeOrigin: true,
       },
     },
