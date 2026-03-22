@@ -10,7 +10,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      devOptions: { enabled: true },
+      // devOptions disabled: vite-plugin-pwa conflicts with Vite 8/Rolldown in dev mode
+      devOptions: { enabled: false },
       includeAssets: ['favicon.svg', 'hero.png', 'robots.txt', 'sitemap.xml'],
       manifest: {
         name: 'AdaptLearn — AI Onboarding Engine',
