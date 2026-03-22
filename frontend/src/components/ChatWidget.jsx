@@ -91,7 +91,7 @@ function MessageBubble({ msg }) {
       >
         {isUser ? msg.content : <MarkdownText text={msg.content} />}
         <div className={`text-[10px] mt-1 ${isUser ? 'text-indigo-200' : 'text-slate-500'} text-right`}>
-          {new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(msg.timestamp ?? 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
     </div>
@@ -157,11 +157,9 @@ export default function ChatWidget() {
   const bottomRef                 = useRef(null);
   const inputRef                  = useRef(null);
 
-  // Only show for authenticated users
-  if (!accessToken || !user) return null;
-
   // Greet the user when the widget first opens (no session yet)
   useEffect(() => {
+    if (!accessToken || !user) return;
     if (open && messages.length === 0 && !sessionId) {
       setMessages([{
         role: 'assistant',
@@ -173,7 +171,7 @@ export default function ChatWidget() {
       setUnread(0);
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [open]);
+  }, [open, accessToken, user, messages.length, sessionId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -191,9 +189,11 @@ export default function ChatWidget() {
     if (open && showHistory) loadHistory();
   }, [open, showHistory, loadHistory]);
 
+  // Only show for authenticated users — MUST be after all hooks
+  if (!accessToken || !user) return null;
+
   const loadSession = async (sid) => {
     try {
-      const data = await getChatHistory();
       const s = await import('../services/chatService').then(m => m.getChatSession(sid));
       setSessionId(s.sessionId);
       setMessages(s.messages || []);
