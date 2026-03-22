@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import AdminLayout from './components/AdminLayout';
 
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -17,6 +19,11 @@ import UploadStep from './pages/onboard/UploadStep';
 import JobPickerStep from './pages/onboard/JobPickerStep';
 import GapStep from './pages/onboard/GapStep';
 import RoadmapStep from './pages/onboard/RoadmapStep';
+
+import AnalyticsPage from './pages/admin/AnalyticsPage';
+import UsersPage from './pages/admin/UsersPage';
+import AdminJobsPage from './pages/admin/JobsPage';
+import AdminCoursesPage from './pages/admin/CoursesPage';
 
 const router = createBrowserRouter([
   {
@@ -58,6 +65,22 @@ const router = createBrowserRouter([
 
       // Fallback
       { path: '*', element: <Navigate to="/" replace /> },
+    ],
+  },
+
+  // Admin routes — standalone layout (no public Navbar/Footer)
+  {
+    element: <AdminRoute />,
+    children: [
+      {
+        element: <AdminLayout />,
+        children: [
+          { path: '/admin', element: <AnalyticsPage /> },
+          { path: '/admin/users', element: <UsersPage /> },
+          { path: '/admin/jobs', element: <AdminJobsPage /> },
+          { path: '/admin/courses', element: <AdminCoursesPage /> },
+        ],
+      },
     ],
   },
 ]);

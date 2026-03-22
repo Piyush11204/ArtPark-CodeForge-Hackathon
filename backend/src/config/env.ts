@@ -49,4 +49,9 @@ export const env = {
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
 
   MAX_FILE_SIZE_MB: parseInt(process.env.MAX_FILE_SIZE_MB || '5', 10),
+
+  // Chatbot
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  CHAT_MAX_HISTORY: parseInt(process.env.CHAT_MAX_HISTORY || '20', 10),
 };

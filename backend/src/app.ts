@@ -13,6 +13,8 @@ import resumeRoutes from './routes/resumeRoutes';
 import gapRoutes from './routes/gapRoutes';
 import pathwayRoutes from './routes/pathwayRoutes';
 import courseRoutes from './routes/courseRoutes';
+import adminRoutes from './routes/adminRoutes';
+import chatRoutes from './routes/chatRoutes';
 
 const app = express();
 
@@ -87,6 +89,8 @@ app.use('/api/resume', resumeRoutes);
 app.use('/api/gap', gapRoutes);
 app.use('/api/pathway', pathwayRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Serve React frontend build (works in both dev and production)
 // FRONTEND_DIST_PATH env var overrides the default (useful for Docker builds)
